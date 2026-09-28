@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ContratBail
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - contrat-bail-db:/var/lib/postgresql/data
+      - ./sql/240920260828-database_init.sql:/docker-entrypoint-initdb.d/01-database_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ContratBail"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/ContratBail
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+
+volumes:
+  contrat-bail-db:
