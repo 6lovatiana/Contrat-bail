@@ -10,4 +10,6 @@
 /home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/repository/LogementRepository.java
 /home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/repository/PaiementLoyerRepository.java
 /home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/repository/UtilisateurRepository.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/service/ContratService.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/service/PdfContratService.java
 /home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/web/ContratController.java

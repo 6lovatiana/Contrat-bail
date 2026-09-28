@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contrat de bail</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #172033; }
+        h1 { border-bottom: 2px solid #172033; padding-bottom: 12px; }
+        section { margin: 28px 0; padding: 20px; border: 1px solid #d9dee8; border-radius: 8px; }
+        .actions { display: flex; gap: 12px; margin: 20px 0; }
+        a { padding: 10px 16px; background: #123b7a; color: white; text-decoration: none; border-radius: 6px; }
+        dt { font-weight: bold; margin-top: 12px; } dd { margin: 4px 0 0; }
+        table { width: 100%; border-collapse: collapse; } th, td { padding: 8px; border-bottom: 1px solid #d9dee8; text-align: left; }
+    </style>
+</head>
+<body>
+<h1>Contrat de bail</h1>
+<div class="actions">
+    <a th:href="@{/contrats/{id}/pdf(id=${contrat.id})}">Telecharger le PDF</a>
+    <a th:href="@{/contrats/create-wizard}">Nouveau contrat</a>
+</div>
+<section>
+    <h2>Parties et bien</h2>
+    <dl>
+        <dt>Bailleur</dt>
+        <dd th:text="${contrat.logement.proprietaire.nom + ' ' + contrat.logement.proprietaire.prenom}"></dd>
+        <dt>Locataire</dt>
+        <dd th:text="${contrat.locataire.nom + ' ' + contrat.locataire.prenom}"></dd>
+        <dt>Logement</dt>
+        <dd th:text="${contrat.logement.adresseLot + ', ' + contrat.logement.ville}"></dd>
+    </dl>
+</section>
+<section>
+    <h2>Conditions</h2>
+    <p>Du <strong th:text="${contrat.dateDebut}"></strong> au <strong th:text="${contrat.dateFin}"></strong></p>
+    <p>Loyer : <strong th:text="${contrat.montantLoyerMga + ' MGA'}"></strong></p>
+    <p>Statut : <strong th:text="${contrat.statutActuel}"></strong></p>
+</section>
+<section>
+    <h2>Echeances mensuelles</h2>
+    <table>
+        <thead><tr><th>Periode</th><th>Montant attendu</th><th>Statut</th></tr></thead>
+        <tbody>
+        <tr th:each="paiement : ${paiements}">
+            <td th:text="${paiement.periodeMois + '/' + paiement.periodeAnnee}"></td>
+            <td th:text="${paiement.montantAttendu + ' MGA'}"></td>
+            <td th:text="${paiement.statut}"></td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+</body>
+</html>

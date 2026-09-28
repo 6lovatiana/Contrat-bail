@@ -64,4 +64,10 @@ public class ContratDeBail {
     public void setLogement(Logement v) { logement = v; }
     public Utilisateur getLocataire() { return locataire; }
     public void setLocataire(Utilisateur v) { locataire = v; }
+    public List<PaiementLoyer> getPaiements() { return paiements; }
+
+    public void ajouterPaiement(PaiementLoyer paiement) {
+        paiement.setContrat(this);
+        paiements.add(paiement);
+    }
 }
