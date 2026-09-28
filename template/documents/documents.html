@@ -1,702 +1,501 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title></title>
+    <title th:text="'Coffre-fort numérique — ' + (${bailleur != null} ? ${bailleur.nomComplet} : 'Bailtech')">Bailtech
+    </title>
 </head>
 
 <body>
-    <div class="w-[1440px] flex bg-slate-50">
-        <div class="flex flex-col justify-between self-stretch w-72 bg-blue-900">
-            <div class="flex flex-col self-stretch p-8">
-                <div class="flex items-center gap-3 self-stretch">
-                    <div class="w-10 h-10 flex justify-center items-center bg-emerald-500 rounded-lg">
-                        <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
-                            <div class="w-[22.5px] h-5"><svg class="w-[22.5px] h-[20.0029296875px] text-white"></svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col"><span class="font-bold text-2xl text-white">Bailtech</span></div>
-                </div>
-            </div>
-            <div class="flex flex-col justify-center self-stretch grow pt-4">
-                <div class="flex flex-col self-stretch grow px-4">
-                    <div class="flex flex-col gap-2 self-stretch">
-                        <div class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
-                            <div class="w-5 flex flex-col py-1">
-                                <div class="w-[18px] h-4"><svg class="w-[16.93529510498047px] h-4 text-white"></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col"><span class="font-normal text-base text-white">Tableau de
-                                    bord</span></div>
-                        </div>
-                        <div class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
-                            <div class="w-5 flex flex-col py-1">
-                                <div class="w-3 h-4"><svg class="w-3 h-4 text-white"></svg></div>
-                            </div>
-                            <div class="flex flex-col"><span class="font-normal text-base text-white">Contrats</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
-                            <div class="w-5 flex flex-col py-1">
-                                <div class="w-5 h-4"><svg class="w-5 h-4 text-white"></svg></div>
-                            </div>
-                            <div class="flex flex-col"><span class="font-normal text-base text-white">Locataires</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
-                            <div class="w-5 flex flex-col py-1">
-                                <div class="w-5 h-4"><svg
-                                        class="w-[19.996875762939453px] h-[15.994534492492676px] text-white"></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col"><span class="font-normal text-base text-white">Paiements</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
-                            <div class="w-5 flex flex-col py-1">
-                                <div class="w-3.5 h-4"><svg
-                                        class="w-[12.002591133117676px] h-[16.000564575195312px] text-yellow-400"></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col"><span class="font-normal text-base text-white">Calculateur
-                                    JIRAMA</span></div>
-                        </div>
-                        <div class="flex items-center gap-3 self-stretch bg-white px-4 py-3 rounded-xl">
-                            <div class="w-5 flex flex-col py-1">
-                                <div class="w-[18px] h-4"><svg class="w-[17.998830795288086px] h-3.5 text-white"></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col"><span class="font-medium text-base text-white">Documents</span>
-                            </div>
-                        </div>
+<div class="w-[1440px] flex bg-slate-50">
+    <!-- ================= Navigation latérale ================= -->
+    <div class="flex flex-col justify-between self-stretch w-72 bg-blue-900">
+        <div class="flex flex-col self-stretch p-8">
+            <a th:href="@{/dashboard}" class="flex items-center gap-3 self-stretch">
+                <div class="w-10 h-10 flex justify-center items-center bg-emerald-500 rounded-lg">
+                    <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
+                        <div class="w-[22.5px] h-5"><svg
+                                class="w-[22.5px] h-[20.0029296875px] text-white"></svg></div>
                     </div>
                 </div>
-            </div>
-            <div class="flex flex-col self-stretch p-6">
-                <div class="flex flex-col gap-[10.875px] self-stretch bg-white p-4 rounded-2xl">
-                    <div class="flex items-center gap-2 self-stretch">
-                        <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                            <div class="w-3 h-3"><svg
-                                    class="w-[11.250020980834961px] h-[11.934375762939453px] text-emerald-500"></svg>
+                <div class="flex flex-col"><span class="font-bold text-2xl text-white">Bailtech</span></div>
+            </a>
+        </div>
+        <div class="flex flex-col justify-center self-stretch grow pt-4">
+            <div class="flex flex-col self-stretch grow px-4">
+                <div class="flex flex-col gap-2 self-stretch">
+                    <a th:href="@{/dashboard}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-5 flex flex-col py-1">
+                            <div class="w-[18px] h-4"><svg
+                                    class="w-[16.93529510498047px] h-4 text-white"></svg></div>
+                        </div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Tableau de
+                                bord</span></div>
+                    </a>
+                    <a th:href="@{/contrats/create}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-5 flex flex-col py-1">
+                            <div class="w-3 h-4"><svg class="w-3 h-4 text-white"></svg></div>
+                        </div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Contrats</span></div>
+                    </a>
+                    <a th:href="@{/locataires}" class="flex items-center gap-3 self-stretch bg-white px-4 py-3 rounded-xl">
+                        <div class="w-5 flex flex-col py-1">
+                            <div class="w-5 h-4"><svg class="w-5 h-4 text-blue-900"></svg></div>
+                        </div>
+                        <div class="flex flex-col"><span class="font-medium text-base text-blue-900">Locataires</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/dashboard}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-5 flex flex-col py-1">
+                            <div class="w-5 h-4"><svg
+                                    class="w-[19.996875762939453px] h-[15.994534492492676px] text-white"></svg></div>
+                        </div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Paiements</span></div>
+                    </a>
+                    <a th:href="@{/jirama}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-5 flex flex-col py-1">
+                            <div class="w-3.5 h-4"><svg
+                                    class="w-[12.002591133117676px] h-[16.000564575195312px] text-yellow-400"></svg>
                             </div>
                         </div>
-                        <div class="flex flex-col"><span
-                                class="font-semibold text-[10px] leading-[15px] underline text-white">Sécurité des
-                                données</span></div>
-                    </div>
-                    <div class="flex flex-col self-stretch pb-[0.7549999952316284px]"><span
-                            class="font-normal text-[11px] leading-[17.8799991607666px] text-white">Vos documents sont
-                            chiffrés avec la
-                            technologie AES-256 conforme aux
-                            normes bancaires.</span></div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Calculateur
+                                JIRAMA</span></div>
+                    </a>
+                    <a th:href="@{/locataires}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-5 flex flex-col py-1">
+                            <div class="w-[18px] h-4"><svg
+                                    class="w-[17.998830795288086px] h-3.5 text-white"></svg></div>
+                        </div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Documents</span></div>
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="flex flex-col self-stretch grow">
-            <div class="flex justify-between items-center self-stretch h-20 bg-white px-8 border-solid border-gray-100">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 flex justify-center items-center bg-slate-100 rounded">
-                        <div class="flex flex-col py-1">
-                            <div class="w-[18px] h-4"><svg class="w-[18px] h-4 text-slate-400"></svg></div>
+        <div class="flex flex-col self-stretch p-6">
+            <div class="flex flex-col gap-[10.875px] self-stretch bg-white p-4 rounded-2xl">
+                <div class="flex items-center gap-2 self-stretch">
+                    <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
+                        <div class="w-3 h-3"><svg
+                                class="w-[11.250020980834961px] h-[11.934375762939453px] text-emerald-500"></svg>
                         </div>
                     </div>
-                    <div class="flex flex-col"><span class="font-bold text-xl text-gray-900">Coffre-fort
-                            Numérique</span></div>
+                    <div class="flex flex-col"><span
+                            class="font-semibold text-[10px] leading-[15px] underline text-white">Sécurité des
+                            données</span></div>
                 </div>
-                <div class="flex items-center gap-6">
-                    <div
-                        class="flex items-center gap-4 bg-emerald-50 px-4 py-2 rounded-full border border-solid border-emerald-100">
-                        <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                            <div class="w-[13.5px] h-3"><svg class="w-[13.5px] h-3 text-emerald-600"></svg></div>
-                        </div>
-                        <div class="flex flex-col"><span class="font-bold text-xs underline text-emerald-700">Session
-                                Sécurisée</span></div>
+                <div class="flex flex-col self-stretch pb-[0.7549999952316284px]"><span
+                        class="font-normal text-[11px] leading-[17.8799991607666px] text-white">Vos documents sont
+                    chiffrés avec la
+                    technologie AES-256 conforme aux
+                    normes bancaires.</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col self-stretch grow">
+        <!-- ================= En-tête ================= -->
+        <div class="flex justify-between items-center self-stretch h-20 bg-white px-8 border-solid border-gray-100">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 flex justify-center items-center bg-slate-100 rounded">
+                    <div class="flex flex-col py-1">
+                        <div class="w-[18px] h-4"><svg class="w-[18px] h-4 text-slate-400"></svg></div>
                     </div>
-                    <div class="flex items-center gap-3 pl-6 border-solid border-gray-100">
-                        <div class="flex flex-col">
-                            <div class="flex flex-col items-end self-stretch"><span
-                                    class="font-semibold text-sm text-right text-gray-900">M. Razafindrakoto</span>
-                            </div>
-                            <div class="flex flex-col items-end self-stretch"><span
-                                    class="font-bold text-[10px] leading-[15px] text-right underline text-emerald-600">Accès
-                                    Administrateur</span></div>
-                        </div><img class="w-10 h-10 rounded-full border-2 border-solid border-emerald-500"></img>
+                </div>
+                <div class="flex flex-col"><span class="font-bold text-xl text-gray-900">Coffre-fort
+                        Numérique</span></div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4 bg-emerald-50 px-4 py-2 rounded-full border border-solid border-emerald-100">
+                    <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
+                        <div class="w-[13.5px] h-3"><svg
+                                class="w-[13.5px] h-3 text-emerald-600"></svg></div>
+                    </div>
+                    <div class="flex flex-col"><span
+                            class="font-bold text-xs underline text-emerald-700">Session
+                        Sécurisée</span></div>
+                </div>
+                <div class="flex items-center gap-3 pl-6 border-solid border-gray-100">
+                    <div class="flex flex-col">
+                        <div class="flex flex-col items-end self-stretch"><span
+                                class="font-semibold text-sm text-right text-gray-900"
+                                th:text="${bailleur != null} ? ${bailleur.nomComplet} : 'Aucun bailleur'">M.
+                            Razafindrakoto</span>
+                        </div>
+                        <div class="flex flex-col items-end self-stretch"><span
+                                class="font-bold text-[10px] leading-[15px] text-right underline text-emerald-600">Accès
+                            Administrateur</span></div>
+                    </div>
+                    <div class="w-10 h-10 flex justify-center items-center bg-emerald-50 rounded-full">
+                        <span class="font-bold text-sm text-emerald-700"
+                              th:text="${bailleur != null} ? ${bailleur.initiales} : '?'">JR</span>
                     </div>
                 </div>
             </div>
-            <div class="flex flex-col gap-8 self-stretch grow p-8">
-                <div class="flex justify-center gap-6 self-stretch">
-                    <div
-                        class="flex items-center gap-4 grow bg-white px-5 py-7 rounded-2xl border border-solid border-slate-200">
-                        <div class="w-12 h-12 flex justify-center items-center bg-blue-50 rounded-xl">
-                            <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
-                                <div class="w-[25px] h-5"><svg class="w-[24.684085845947266px] h-5 text-blue-600"></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex flex-col self-stretch"><span
-                                    class="font-medium text-xs underline text-slate-500">Locataires vérifiés</span>
-                            </div>
-                            <div class="flex flex-col self-stretch"><span
-                                    class="font-bold text-2xl text-slate-900">85%</span></div>
+        </div>
+
+        <div class="flex flex-col gap-8 self-stretch grow p-8">
+            <!-- ================= Indicateurs ================= -->
+            <div class="flex justify-center gap-6 self-stretch">
+                <div class="flex items-center gap-4 grow bg-white px-5 py-7 rounded-2xl border border-solid border-slate-200">
+                    <div class="w-12 h-12 flex justify-center items-center bg-blue-50 rounded-xl">
+                        <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
+                            <div class="w-[25px] h-5"><svg
+                                    class="w-[24.684085845947266px] h-5 text-blue-600"></svg></div>
                         </div>
                     </div>
-                    <div
-                        class="flex items-center gap-4 grow bg-white px-5 py-7 rounded-2xl border border-solid border-slate-200">
-                        <div class="w-12 h-12 flex justify-center items-center bg-amber-50 rounded-xl">
-                            <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
-                                <div class="w-[22.5px] h-5"><svg class="w-[22.5px] h-5 text-amber-600"></svg></div>
-                            </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-medium text-xs underline text-slate-500">Dossiers en cours de bail</span>
                         </div>
-                        <div class="flex flex-col">
-                            <div class="flex flex-col self-stretch"><span
-                                    class="font-medium text-xs underline text-slate-500">Pièces manquantes</span></div>
-                            <div class="flex flex-col self-stretch"><span
-                                    class="font-bold text-2xl text-slate-900">12</span></div>
-                        </div>
-                    </div>
-                    <div
-                        class="flex items-center gap-4 grow bg-white p-5 rounded-2xl border border-solid border-slate-200">
-                        <div class="w-12 h-12 flex justify-center items-center bg-emerald-50 rounded-xl">
-                            <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
-                                <div class="w-5 h-5"><svg class="w-5 h-5 text-emerald-600"></svg></div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex flex-col self-stretch"><span
-                                    class="font-medium text-xs underline text-slate-500">En attente
-                                    d'examen</span></div>
-                            <div class="flex flex-col self-stretch"><span
-                                    class="font-bold text-2xl text-slate-900">4</span></div>
-                        </div>
-                    </div>
-                    <div
-                        class="flex items-center gap-4 grow bg-white px-5 py-7 rounded-2xl border border-solid border-slate-200">
-                        <div class="w-12 h-12 flex justify-center items-center bg-slate-900 rounded-xl">
-                            <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
-                                <div class="w-5 h-5"><svg class="w-5 h-5 text-white"></svg></div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex flex-col self-stretch"><span
-                                    class="font-medium text-xs underline text-slate-500">Dernier Audit</span></div>
-                            <div class="flex flex-col self-stretch"><span class="font-bold text-sm text-slate-900">Il y
-                                    a 2h</span></div>
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-bold text-2xl text-slate-900" th:text="${nbDossiersComplets}">0</span>
                         </div>
                     </div>
                 </div>
-                <div class="flex self-stretch h-[933.5px]">
-                    <div
-                        class="flex flex-col grow bg-white pb-[454px] rounded-3xl border border-solid border-slate-200">
-                        <div
-                            class="flex justify-between items-center self-stretch bg-slate-50 p-6 border-solid border-slate-100">
-                            <div class="flex flex-col"><span class="font-bold text-lg text-slate-900">Gestion des
-                                    Documents Locataires</span></div>
-                            <div class="flex gap-2">
-                                <div class="flex flex-col self-stretch">
-                                    <div
-                                        class="w-48 flex justify-center bg-white pl-9 pr-4 pt-[9px] pb-2.5 rounded-xl border border-solid border-slate-200">
-                                        <div class="flex flex-col grow"><span
-                                                class="font-normal text-[14px] text-gray-400">Rechercher...</span></div>
-                                    </div>
-                                    <div class="h-5 flex flex-col pt-[2.75px] pb-[3.25px]">
-                                        <div class="w-3.5 h-3.5"><svg
-                                                class="w-[13.999316215515137px] h-[14.00205135345459px] text-slate-400"></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="flex flex-col justify-center items-center px-2 py-2.5 rounded-xl border border-solid border-slate-200">
-                                    <div class="flex py-0.5">
-                                        <div class="w-4 h-4"><svg
-                                                class="w-[15.998126983642578px] h-[13.999576568603516px] text-slate-600"></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col self-stretch">
-                            <div class="flex flex-col self-stretch bg-white">
-                                <div class="flex justify-center self-stretch">
-                                    <div class="w-[268.6600036621094px] flex flex-col px-6 py-4"><span
-                                            class="font-bold text-[10px] leading-[15px] underline text-slate-400">Locataire</span>
-                                    </div>
-                                    <div class="w-[157.3800048828125px] flex flex-col px-6 py-4"><span
-                                            class="font-bold text-[10px] leading-[15px] underline text-slate-400">N°
-                                            CIN</span></div>
-                                    <div class="w-40 flex flex-col px-6 py-4"><span
-                                            class="font-bold text-[10px] leading-[15px] underline text-slate-400">Statut
-                                            Dossier</span></div>
-                                    <div class="w-[126.62999725341797px] flex flex-col items-end px-6 py-4"><span
-                                            class="font-bold text-[10px] leading-[15px] text-right underline text-slate-400">Actions</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex flex-col gap-[-1px] self-stretch">
-                                <div class="flex justify-center items-center gap-6 self-stretch pl-6">
-                                    <div class="w-[220.66000366210938px] flex items-center gap-3">
-                                        <div
-                                            class="h-10 w-[39.15999984741211px] flex flex-col justify-center bg-slate-100 rounded-full">
-                                            <img class="self-stretch grow"></img></div>
-                                        <div class="flex flex-col">
-                                            <div class="flex flex-col self-stretch"><span
-                                                    class="font-bold text-sm text-slate-900">Sahondra
-                                                    Razafindrakoto</span></div>
-                                            <div class="flex flex-col self-stretch"><span
-                                                    class="font-normal text-[11px] leading-[16.5px] text-slate-400">Ajouté
-                                                    le 12/09/2023</span></div>
-                                        </div>
-                                    </div>
-                                    <div class="w-[157.3800048828125px] flex flex-col px-6 pt-[28.25px] pb-[22.75px]">
-                                        <div class="w-[80.62999725341797px] h-[46px] bg-slate-100 rounded"><span
-                                                class="font-normal text-xs text-slate-600">101 211 •••</span><span
-                                                class="font-normal text-xs text-slate-600">•••</span></div>
-                                    </div>
-                                    <div class="w-28 flex items-center gap-2">
-                                        <div class="flex flex-col">
-                                            <div
-                                                class="w-8 h-8 flex justify-center items-center bg-emerald-100 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[13.5px] h-3"><svg
-                                                            class="w-[13.5px] h-[10.5px] text-emerald-600"></svg></div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-emerald-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-[5.25px] h-1.5"><svg
-                                                            class="w-[5.250586032867432px] h-[3.7505860328674316px] text-white"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <div
-                                                class="w-8 h-8 flex justify-center items-center bg-emerald-100 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[13.5px] h-3"><svg
-                                                            class="w-[13.498851776123047px] h-3 text-emerald-600"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-emerald-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-[5.25px] h-1.5"><svg
-                                                            class="w-[5.250586032867432px] h-[3.7505860328674316px] text-white"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <div
-                                                class="w-8 h-8 flex justify-center items-center bg-emerald-100 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[9px] h-3"><svg
-                                                            class="w-[9px] h-3 text-emerald-600"></svg></div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-emerald-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-[5.25px] h-1.5"><svg
-                                                            class="w-[5.250586032867432px] h-[3.7505860328674316px] text-white"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="w-[126.62999725341797px] flex flex-col items-end px-6 pt-[26.25px] pb-[26.75px]">
-                                        <div class="w-[78.62999725341797px] h-[44px] rounded-lg"><span
-                                                class="font-bold text-xs text-center text-blue-900">Détails</span>
-                                            <div class="flex py-[1.5px]">
-                                                <div class="w-[7.5px] h-3"><svg
-                                                        class="w-[6.001171588897705px] h-[10.50351619720459px] text-blue-900"></svg>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="flex justify-center items-center gap-6 self-stretch pl-6 border-t border-solid border-slate-50">
-                                    <div class="w-[220.66000366210938px] flex items-center gap-3">
-                                        <div class="h-10 w-10 flex flex-col justify-center bg-slate-100 rounded-full">
-                                            <img class="self-stretch grow"></img></div>
-                                        <div class="flex flex-col">
-                                            <div class="flex flex-col self-stretch"><span
-                                                    class="font-bold text-sm text-slate-900">Andry Tiana Rakoto</span>
-                                            </div>
-                                            <div class="flex flex-col self-stretch"><span
-                                                    class="font-normal text-[11px] leading-[16.5px] text-slate-400">Ajouté
-                                                    le 15/09/2023</span></div>
-                                        </div>
-                                    </div>
-                                    <div class="w-[157.3800048828125px] flex flex-col px-6 pt-[24.5px] pb-[18.5px]">
-                                        <div class="w-[80.62999725341797px] h-[46px] bg-slate-100 rounded"><span
-                                                class="font-normal text-xs text-slate-600">201 054 •••</span><span
-                                                class="font-normal text-xs text-slate-600">•••</span></div>
-                                    </div>
-                                    <div class="w-28 flex items-center gap-2">
-                                        <div class="flex flex-col">
-                                            <div
-                                                class="w-8 h-8 flex justify-center items-center bg-amber-100 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[13.5px] h-3"><svg
-                                                            class="w-[13.5px] h-[10.5px] text-amber-600"></svg></div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-amber-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-1.5 h-1.5"><svg class="w-1.5 h-1.5 text-white"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <div
-                                                class="w-8 h-8 flex justify-center items-center bg-emerald-100 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[13.5px] h-3"><svg
-                                                            class="w-[13.498851776123047px] h-3 text-emerald-600"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-emerald-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-[5.25px] h-1.5"><svg
-                                                            class="w-[5.250586032867432px] h-[3.7505860328674316px] text-white"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <div class="w-8 h-8 flex justify-center items-center bg-red-50 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[9px] h-3"><svg
-                                                            class="w-[9px] h-3 text-red-400"></svg></div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-red-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-[0.75px] h-1.5"><svg
-                                                            class="w-[0.9375px] h-[5.25px] text-white"></svg></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="w-[126.62999725341797px] flex flex-col items-end px-6 py-[30.5px]">
-                                        <div class="flex justify-center items-center px-3 py-1.5 rounded-lg"><span
-                                                class="font-bold text-xs text-center text-blue-900">Relancer</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="flex justify-center items-center gap-6 self-stretch pl-6 border-t border-solid border-slate-50">
-                                    <div class="w-[220.66000366210938px] flex items-center gap-3">
-                                        <div class="h-10 w-10 flex flex-col justify-center bg-slate-100 rounded-full">
-                                            <img class="self-stretch grow"></img></div>
-                                        <div class="flex flex-col">
-                                            <div class="flex flex-col self-stretch"><span
-                                                    class="font-bold text-sm text-slate-900">Lova Heriniaina</span>
-                                            </div>
-                                            <div class="flex flex-col self-stretch"><span
-                                                    class="font-normal text-[11px] leading-[16.5px] text-slate-400">Ajouté
-                                                    le 02/10/2023</span></div>
-                                        </div>
-                                    </div>
-                                    <div class="w-[157.3800048828125px] flex flex-col px-6 pt-[24.5px] pb-[18px]">
-                                        <div class="w-[80.62999725341797px] h-[46px] bg-slate-100 rounded"><span
-                                                class="font-normal text-xs text-slate-600">115 842 •••</span><span
-                                                class="font-normal text-xs text-slate-600">•••</span></div>
-                                    </div>
-                                    <div class="w-28 flex items-center gap-2">
-                                        <div class="flex flex-col">
-                                            <div
-                                                class="w-8 h-8 flex justify-center items-center bg-emerald-100 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[13.5px] h-3"><svg
-                                                            class="w-[13.5px] h-[10.5px] text-emerald-600"></svg></div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-emerald-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-[5.25px] h-1.5"><svg
-                                                            class="w-[5.250586032867432px] h-[3.7505860328674316px] text-white"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <div class="w-8 h-8 flex justify-center items-center bg-red-50 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[13.5px] h-3"><svg
-                                                            class="w-[13.498851776123047px] h-3 text-red-400"></svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="w-3 h-[13px] flex justify-center items-center bg-red-500 rounded-full border-2 border-solid border-white">
-                                                <div class="flex flex-col pt-[1.75px] pb-[1.25px]">
-                                                    <div class="w-[0.75px] h-1.5"><svg
-                                                            class="w-[0.9375px] h-[5.25px] text-white"></svg></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <div
-                                                class="w-8 h-8 flex justify-center items-center bg-slate-100 rounded-lg">
-                                                <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                                    <div class="w-[9px] h-3"><svg
-                                                            class="w-[9px] h-3 text-slate-400"></svg></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="w-[126.62999725341797px] flex flex-col items-end px-6 pt-[22.5px] pb-[22px]">
-                                        <div class="w-[78.62999725341797px] h-[44px] rounded-lg"><span
-                                                class="font-bold text-xs text-center text-blue-900">Détails</span>
-                                            <div class="flex py-[1.5px]">
-                                                <div class="w-[7.5px] h-3"><svg
-                                                        class="w-[6.001171588897705px] h-[10.50351619720459px] text-blue-900"></svg>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            class="flex justify-between items-center self-stretch bg-slate-50 pl-6 pr-[24.010000228881836px] pt-6 pb-6 border-t border-solid border-slate-100">
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-1.5">
-                                    <div class="w-2 h-2 bg-emerald-500"></div><span
-                                        class="font-bold text-[10px] leading-[15px] underline text-slate-500">Vérifié</span>
-                                </div>
-                                <div class="flex items-center gap-1.5">
-                                    <div class="w-2 h-2 bg-amber-500"></div><span
-                                        class="font-bold text-[10px] leading-[15px] underline text-slate-500">En
-                                        attente</span>
-                                </div>
-                                <div class="flex items-center gap-1.5">
-                                    <div class="w-2 h-2 bg-red-500"></div><span
-                                        class="font-bold text-[10px] leading-[15px] underline text-slate-500">Manquant</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-col"><span class="font-medium text-xs text-slate-400">Affichage de 1 à
-                                    12 sur 15 locataires</span></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-6 grow">
-                        <div
-                            class="flex flex-col items-center self-stretch bg-white p-8 rounded-3xl border-2 border-dashed border-slate-200">
-                            <div class="h-20 w-16 flex flex-col pb-4">
-                                <div class="w-16 h-16 flex justify-center items-center bg-blue-50 rounded-2xl">
-                                    <div class="flex flex-col pt-[3px] pb-[5px]">
-                                        <div class="w-[30px] h-6"><svg class="w-[30px] h-[21px] text-blue-900"></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex flex-col pb-1">
-                                <div class="flex flex-col items-center"><span
-                                        class="font-bold text-base text-center text-slate-900">Ajouter une pièce</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-col pb-6">
-                                <div
-                                    class="flex flex-col items-center pl-[18.860000610351562px] pr-[18.8799991607666px]">
-                                    <span class="font-normal text-xs text-center text-slate-500">Glissez-déposez les
-                                        scans ou photos des
-                                        documents officiels pour chiffrement
-                                        immédiat.</span></div>
-                            </div>
-                            <div class="flex flex-col gap-4 self-stretch">
-                                <div
-                                    class="flex items-center gap-3 self-stretch bg-slate-50 p-3 rounded-xl border border-solid border-slate-100">
-                                    <div class="w-10 h-10 flex justify-center items-center bg-white rounded-lg">
-                                        <div class="flex flex-col py-1">
-                                            <div class="w-4 h-4"><svg
-                                                    class="w-[16.003124237060547px] h-[15.749495506286621px] text-slate-800"></svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-bold text-xs text-slate-900">Nouvelle CIN</span></div>
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-normal text-[10px] leading-[15px] text-slate-400">PDF, JPG,
-                                                PNG max 5Mo</span></div>
-                                    </div>
-                                    <div class="flex flex-col items-end grow pl-[49.46879959106445px]">
-                                        <div class="flex flex-col py-1">
-                                            <div class="w-4 h-4"><svg class="w-4 h-4 text-slate-300"></svg></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div
-                                    class="flex items-center gap-3 self-stretch bg-slate-50 p-3 rounded-xl border border-solid border-slate-100">
-                                    <div class="w-10 h-10 flex justify-center items-center bg-white rounded-lg">
-                                        <div class="flex flex-col py-1">
-                                            <div class="w-4 h-4"><svg
-                                                    class="w-[16.00187873840332px] h-[15.998437881469727px] text-slate-800"></svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-bold text-xs text-slate-900">Contrat de Bail</span></div>
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-normal text-[10px] leading-[15px] text-slate-400">PDF
-                                                uniquement</span></div>
-                                    </div>
-                                    <div class="flex flex-col items-end grow pl-[81.3281021118164px]">
-                                        <div class="flex flex-col py-1">
-                                            <div class="w-4 h-4"><svg class="w-4 h-4 text-slate-300"></svg></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col self-stretch bg-slate-900 p-6 rounded-3xl">
-                            <div class="w-32 h-32 bg-white"></div>
-                            <div class="flex flex-col p-4 opacity-[0.10]">
-                                <div class="w-[67.5px] h-[60px]"><svg
-                                        class="w-[67.5px] h-[60.0087890625px] text-white"></svg></div>
-                            </div>
-                            <div class="flex flex-col gap-2 self-stretch">
-                                <div class="flex items-center gap-2 self-stretch">
-                                    <div class="flex flex-col py-1">
-                                        <div class="w-4 h-4"></div>
-                                    </div>
-                                    <div class="flex flex-col"><span
-                                            class="font-bold text-[10px] leading-[15px] underline text-white">Garantie
-                                            Bailtech</span></div>
-                                </div>
-                                <div class="flex flex-col self-stretch pt-[7px]"><span
-                                        class="font-bold text-[18px] leading-[22.5px] text-white">Chiffrement de bout en
-                                        bout</span></div>
-                                <div class="flex flex-col self-stretch pb-4"><span
-                                        class="font-normal text-[12px] leading-[19.5px] text-white">Chaque document
-                                        déposé subit une opération de
-                                        "hashing" unique. Même l'équipe Bailtech n'a pas
-                                        accès à vos fichiers bruts sans votre clé de
-                                        déchiffrement.</span></div>
-                                <div
-                                    class="flex items-center gap-3 self-stretch bg-white p-3 rounded-xl border border-solid border-white">
-                                    <div class="w-8 h-8 flex justify-center items-center bg-emerald-500 rounded-lg">
-                                        <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
-                                            <div class="w-[10.5px] h-3"><svg
-                                                    class="w-[10.5px] h-3 text-emerald-400"></svg></div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-bold text-[10px] leading-[15px] text-white">AES-256-GCM</span>
-                                        </div>
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-normal text-[9px] leading-[13.5px] text-white">Standard de
-                                                Protection Bancaire</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            class="flex flex-col gap-4 self-stretch bg-white p-6 rounded-3xl border border-solid border-slate-200">
-                            <div class="flex justify-between items-center self-stretch pr-[1.7053025658242404e-13px]">
-                                <div class="flex flex-col"><span class="font-bold text-sm text-slate-900">Activités
-                                        récentes</span></div>
-                                <div class="flex flex-col"><span
-                                        class="font-normal text-[10px] leading-[15px] text-slate-400">Voir
-                                        l'audit</span></div>
-                            </div>
-                            <div class="flex flex-col gap-4 self-stretch">
-                                <div class="flex gap-3 self-stretch">
-                                    <div class="h-3.5 w-2 flex flex-col pt-1.5">
-                                        <div class="w-2 h-2 bg-emerald-500"></div>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-medium text-xs text-slate-900">Consultation CIN • Sahondra
-                                                R.</span></div>
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-normal text-[10px] leading-[15px] text-slate-400">Aujourd'hui
-                                                à 14:23</span></div>
-                                    </div>
-                                </div>
-                                <div class="flex gap-3 self-stretch">
-                                    <div class="h-3.5 w-2 flex flex-col pt-1.5">
-                                        <div class="w-2 h-2 bg-blue-500"></div>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-medium text-xs text-slate-900">Nouvel upload • Lova
-                                                H.</span></div>
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-normal text-[10px] leading-[15px] text-slate-400">Aujourd'hui
-                                                à 10:45</span></div>
-                                    </div>
-                                </div>
-                                <div class="flex gap-3 self-stretch">
-                                    <div class="h-3.5 w-2 flex flex-col pt-1.5">
-                                        <div class="w-2 h-2 bg-amber-500"></div>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-medium text-xs text-slate-900">Tentative d'accès
-                                                bloquée</span></div>
-                                        <div class="flex flex-col self-stretch"><span
-                                                class="font-normal text-[10px] leading-[15px] text-slate-400">Hier à
-                                                23:12 • IP: 192.168.•••</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="flex justify-center items-center gap-8 self-stretch py-4 border-t border-solid border-slate-100">
-                    <div class="flex items-center gap-2 bg-white">
+                <div class="flex items-center gap-4 grow bg-white px-5 py-7 rounded-2xl border border-solid border-slate-200">
+                    <div class="w-12 h-12 flex justify-center items-center bg-amber-50 rounded-xl">
                         <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
                             <div class="w-[22.5px] h-5"><svg
-                                    class="w-[22.5px] h-[20.0029296875px] text-slate-400"></svg></div>
+                                    class="w-[22.5px] h-5 text-amber-600"></svg></div>
                         </div>
-                        <div class="flex flex-col"><span
-                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">RGPD
-                                Compliant</span></div>
                     </div>
-                    <div class="flex items-center gap-2 bg-white">
-                        <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
-                            <div class="w-5 h-5"><svg class="w-5 h-[17.5px] text-slate-400"></svg></div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-medium text-xs underline text-slate-500">Pièces manquantes</span></div>
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-bold text-2xl text-slate-900" th:text="${nbPiecesManquantes}">0</span>
                         </div>
-                        <div class="flex flex-col"><span
-                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">Hébergement Local
-                                Sécurisé</span></div>
                     </div>
-                    <div class="flex items-center gap-2 bg-white">
+                </div>
+                <div class="flex items-center gap-4 grow bg-white p-5 rounded-2xl border border-solid border-slate-200">
+                    <div class="w-12 h-12 flex justify-center items-center bg-emerald-50 rounded-xl">
                         <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
-                            <div class="w-5 h-5"><svg
-                                    class="w-[20.003250122070312px] h-[20.003250122070312px] text-slate-400"></svg>
+                            <div class="w-5 h-5"><svg class="w-5 h-5 text-emerald-600"></svg></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-medium text-xs underline text-slate-500">Locataires enregistrés</span>
+                        </div>
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-bold text-2xl text-slate-900" th:text="${nbDossiers}">0</span></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 grow bg-white px-5 py-7 rounded-2xl border border-solid border-slate-200">
+                    <div class="w-12 h-12 flex justify-center items-center bg-slate-900 rounded-xl">
+                        <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
+                            <div class="w-5 h-5"><svg class="w-5 h-5 text-white"></svg></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-medium text-xs underline text-slate-500">Dernier Audit</span></div>
+                        <div class="flex flex-col self-stretch"><span
+                                class="font-bold text-sm text-slate-900">À la connexion</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex self-stretch h-[933.5px]">
+                <!-- ================= Liste des dossiers ================= -->
+                <div class="flex flex-col grow bg-white pb-[454px] rounded-3xl border border-solid border-slate-200">
+                    <div class="flex justify-between items-center self-stretch bg-slate-50 p-6 border-solid border-slate-100">
+                        <div class="flex flex-col"><span class="font-bold text-lg text-slate-900">Gestion des
+                                Documents Locataires</span></div>
+                        <div class="flex gap-2">
+                            <form th:action="@{/locataires}" th:method="get"
+                                  class="flex flex-col self-stretch">
+                                <input type="hidden" name="bailleurId" th:if="${bailleur != null}"
+                                       th:value="${bailleur.id}">
+                                <div class="w-48 flex items-center bg-white pl-9 pr-4 py-2.5 rounded-xl border border-solid border-slate-200">
+                                    <input type="text" name="q" th:value="${recherche}" placeholder="Rechercher..."
+                                           class="w-full bg-transparent font-normal text-[14px] text-slate-800 outline-none placeholder:text-gray-400">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col self-stretch">
+                        <div class="flex flex-col self-stretch bg-white">
+                            <div class="flex justify-center self-stretch">
+                                <div class="w-[268.6600036621094px] flex flex-col px-6 py-4"><span
+                                        class="font-bold text-[10px] leading-[15px] underline text-slate-400">Locataire
+                                    et contacts</span>
+                                </div>
+                                <div class="w-[157.3800048828125px] flex flex-col px-6 py-4"><span
+                                        class="font-bold text-[10px] leading-[15px] underline text-slate-400">N°
+                                    CIN</span></div>
+                                <div class="w-[240px] flex flex-col px-6 py-4"><span
+                                        class="font-bold text-[10px] leading-[15px] underline text-slate-400">Bien
+                                    occupé</span></div>
+                                <div class="w-40 flex flex-col px-6 py-4"><span
+                                        class="font-bold text-[10px] leading-[15px] underline text-slate-400">Statut
+                                    Dossier</span></div>
+                                <div class="w-[126.62999725341797px] flex flex-col items-end px-6 py-4"><span
+                                        class="font-bold text-[10px] leading-[15px] text-right underline text-slate-400">Actions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(dossiers)}"
+                             class="flex flex-col items-center self-stretch p-12 text-center">
+                            <span class="font-medium text-sm text-slate-500">Aucun locataire enregistré.</span>
+                            <a th:href="@{/contrats/create}"
+                               class="font-semibold text-sm text-blue-900 mt-2">Créer un contrat</a>
+                        </div>
+
+                        <div class="flex flex-col gap-[-1px] self-stretch">
+                            <div th:each="dossier : ${dossiers}"
+                                 class="flex justify-center items-center gap-6 self-stretch pl-6 py-4 border-t border-solid border-slate-50">
+                                <div class="w-[268.6600036621094px] flex items-center gap-3">
+                                    <div class="h-10 w-10 flex flex-col justify-center items-center bg-slate-100 rounded-full">
+                                        <span class="font-bold text-xs text-slate-600"
+                                              th:text="${dossier.initiales}">SR</span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <div class="flex flex-col self-stretch"><span
+                                                class="font-bold text-sm text-slate-900"
+                                                th:text="${dossier.nom}">Sahondra Razafindrakoto</span></div>
+                                        <div class="flex flex-col self-stretch"><span
+                                                class="font-normal text-[11px] leading-[16.5px] text-slate-400"
+                                                th:text="${dossier.telephone} + ' — ' + ${dossier.email}">+261 32
+                                            00 000 00 — email@exemple.mg</span></div>
+                                    </div>
+                                </div>
+                                <div class="w-[157.3800048828125px] flex flex-col px-6 py-2">
+                                    <div class="w-[110px] h-[32px] flex items-center justify-center bg-slate-100 rounded">
+                                        <span class="font-normal text-xs text-slate-600"
+                                              th:text="${dossier.cin}">101 211 •••</span>
+                                    </div>
+                                </div>
+                                <div class="w-[240px] flex flex-col px-6 py-2">
+                                    <span class="font-normal text-sm text-slate-600"
+                                          th:text="${dossier.bien}">Appartement T3, Ivandry</span>
+                                </div>
+                                <div class="w-40 flex flex-col px-6 py-2">
+                                    <div class="flex self-start px-3 py-[3.5px] rounded-full"
+                                         th:classappend="${dossier.statutCss}">
+                                        <span class="font-semibold text-xs underline"
+                                              th:text="${dossier.statut}">Bail en cours</span>
+                                    </div>
+                                </div>
+                                <div class="w-[126.62999725341797px] flex flex-col items-end px-6 py-2">
+                                    <a th:href="@{/contrats/create}"
+                                       class="flex justify-center items-center px-3 py-1.5 rounded-lg">
+                                        <span class="font-bold text-xs text-center text-blue-900">Détails</span>
+                                        <div class="flex py-[1.5px] pl-1">
+                                            <div class="w-[7.5px] h-3"><svg
+                                                    class="w-[6.001171588897705px] h-[10.50351619720459px] text-blue-900">
+                                            </svg></div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center self-stretch bg-slate-50 pl-6 pr-6 py-6 border-t border-solid border-slate-100">
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2 h-2 bg-emerald-500"></div><span
+                                        class="font-bold text-[10px] leading-[15px] underline text-slate-500">Bail en
+                                    cours</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2 h-2 bg-amber-500"></div><span
+                                        class="font-bold text-[10px] leading-[15px] underline text-slate-500">Pièces
+                                    manquantes</span>
                             </div>
                         </div>
                         <div class="flex flex-col"><span
-                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">ISO 27001
-                                Certified</span></div>
+                                class="font-medium text-xs text-slate-400"
+                                th:text="'Affichage de ' + ${nbDossiers} + ' locataire(s)'">Affichage de 1 à
+                            12 sur 15 locataires</span>
+                        </div>
                     </div>
+                </div>
+
+                <!-- ================= Colonne latérale ================= -->
+                <div class="flex flex-col gap-6 grow">
+                    <div class="flex flex-col items-center self-stretch bg-white p-8 rounded-3xl border-2 border-dashed border-slate-200">
+                        <div class="h-20 w-16 flex flex-col pb-4">
+                            <div class="w-16 h-16 flex justify-center items-center bg-blue-50 rounded-2xl">
+                                <div class="flex flex-col pt-[3px] pb-[5px]">
+                                    <div class="w-[30px] h-6"><svg
+                                            class="w-[30px] h-[21px] text-blue-900"></svg></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col pb-1">
+                            <div class="flex flex-col items-center"><span
+                                    class="font-bold text-base text-center text-slate-900">Ajouter une pièce</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col pb-6">
+                            <div class="flex flex-col items-center pl-[18.860000610351562px] pr-[18.8799991607666px]">
+                                <span class="font-normal text-xs text-center text-slate-500">Le coffre-fort de
+                                    fichiers chiffrés arrive dans la prochaine version : seules les fiches
+                                    d'identité issues de la base sont affichées pour l'instant.</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4 self-stretch">
+                            <div class="flex items-center gap-3 self-stretch bg-slate-50 p-3 rounded-xl border border-solid border-slate-100">
+                                <div class="w-10 h-10 flex justify-center items-center bg-white rounded-lg">
+                                    <div class="flex flex-col py-1">
+                                        <div class="w-4 h-4"><svg
+                                                class="w-[16.003124237060547px] h-[15.749495506286621px] text-slate-800">
+                                        </svg></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-bold text-xs text-slate-900">Nouvelle CIN</span></div>
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-normal text-[10px] leading-[15px] text-slate-400">PDF, JPG,
+                                        PNG max 5Mo</span></div>
+                                </div>
+                                <div class="flex flex-col items-end grow pl-[49.46879959106445px]">
+                                    <div class="flex flex-col py-1">
+                                        <div class="w-4 h-4"><svg class="w-4 h-4 text-slate-300"></svg></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 self-stretch bg-slate-50 p-3 rounded-xl border border-solid border-slate-100">
+                                <div class="w-10 h-10 flex justify-center items-center bg-white rounded-lg">
+                                    <div class="flex flex-col py-1">
+                                        <div class="w-4 h-4"><svg
+                                                class="w-[16.00187873840332px] h-[15.998437881469727px] text-slate-800">
+                                        </svg></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-bold text-xs text-slate-900">Contrat de Bail</span></div>
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-normal text-[10px] leading-[15px] text-slate-400">PDF
+                                        uniquement</span></div>
+                                </div>
+                                <div class="flex flex-col items-end grow pl-[81.3281021118164px]">
+                                    <div class="flex flex-col py-1">
+                                        <div class="w-4 h-4"><svg class="w-4 h-4 text-slate-300"></svg></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col self-stretch bg-slate-900 p-6 rounded-3xl">
+                        <div class="w-32 h-32 bg-white"></div>
+                        <div class="flex flex-col p-4 opacity-[0.10]">
+                            <div class="w-[67.5px] h-[60px]"><svg
+                                    class="w-[67.5px] h-[60.0087890625px] text-white"></svg></div>
+                        </div>
+                        <div class="flex flex-col gap-2 self-stretch">
+                            <div class="flex items-center gap-2 self-stretch">
+                                <div class="flex flex-col py-1">
+                                    <div class="w-4 h-4"></div>
+                                </div>
+                                <div class="flex flex-col"><span
+                                        class="font-bold text-[10px] leading-[15px] underline text-white">Garantie
+                                    Bailtech</span></div>
+                            </div>
+                            <div class="flex flex-col self-stretch pt-[7px]"><span
+                                    class="font-bold text-[18px] leading-[22.5px] text-white">Chiffrement de bout en
+                                bout</span></div>
+                            <div class="flex flex-col self-stretch pb-4"><span
+                                    class="font-normal text-[12px] leading-[19.5px] text-white">Chaque document
+                                déposé subit une opération de
+                                "hashing" unique. Même l'équipe Bailtech n'a pas
+                                accès à vos fichiers bruts sans votre clé de
+                                déchiffrement.</span></div>
+                            <div class="flex items-center gap-3 self-stretch bg-white p-3 rounded-xl border border-solid border-white">
+                                <div class="w-8 h-8 flex justify-center items-center bg-emerald-500 rounded-lg">
+                                    <div class="flex flex-col pt-[1.5px] pb-[2.5px]">
+                                        <div class="w-[10.5px] h-3"><svg
+                                                class="w-[10.5px] h-3 text-emerald-400"></svg></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-bold text-[10px] leading-[15px] text-white">AES-256-GCM</span>
+                                    </div>
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-normal text-[9px] leading-[13.5px] text-white">Standard de
+                                        Protection Bancaire</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-4 self-stretch bg-white p-6 rounded-3xl border border-solid border-slate-200">
+                        <div class="flex justify-between items-center self-stretch pr-[1.7053025658242404e-13px]">
+                            <div class="flex flex-col"><span class="font-bold text-sm text-slate-900">Activités
+                                    récentes</span></div>
+                            <div class="flex flex-col"><span
+                                    class="font-normal text-[10px] leading-[15px] text-slate-400">Journal d'audit
+                                non encore alimenté</span></div>
+                        </div>
+                        <div class="flex flex-col gap-4 self-stretch">
+                            <div th:each="dossier : ${activites}" class="flex gap-3 self-stretch">
+                                <div class="h-3.5 w-2 flex flex-col pt-1.5">
+                                    <div class="w-2 h-2"
+                                         th:classappend="${dossier.dossierComplet} ? 'bg-emerald-500' : 'bg-amber-500'"></div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-medium text-xs text-slate-900"
+                                            th:text="${dossier.dossierComplet} ? ('Dossier en cours — ' + ${dossier.nom}) : ('Pièces à compléter — ' + ${dossier.nom})">Consultation CIN</span>
+                                    </div>
+                                    <div class="flex flex-col self-stretch"><span
+                                            class="font-normal text-[10px] leading-[15px] text-slate-400"
+                                            th:text="${dossier.telephone}">Téléphone</span></div>
+                                </div>
+                            </div>
+                            <div th:if="${#lists.isEmpty(activites)}" class="flex gap-3 self-stretch">
+                                <div class="flex flex-col"><span
+                                        class="font-medium text-xs text-slate-400">Aucune activité à afficher.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center items-center gap-8 self-stretch py-4 border-t border-solid border-slate-100">
+                <div class="flex items-center gap-2 bg-white">
+                    <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
+                        <div class="w-[22.5px] h-5"><svg
+                                class="w-[22.5px] h-[20.0029296875px] text-slate-400"></svg></div>
+                    </div>
+                    <div class="flex flex-col"><span
+                            class="font-bold text-[10px] leading-[15px] underline text-slate-400">RGPD
+                        Compliant</span></div>
+                </div>
+                <div class="flex items-center gap-2 bg-white">
+                    <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
+                        <div class="w-5 h-5"><svg class="w-5 h-[17.5px] text-slate-400"></svg></div>
+                    </div>
+                    <div class="flex flex-col"><span
+                            class="font-bold text-[10px] leading-[15px] underline text-slate-400">Hébergement Local
+                        Sécurisé</span></div>
+                </div>
+                <div class="flex items-center gap-2 bg-white">
+                    <div class="flex flex-col pt-[3.5px] pb-[4.5px]">
+                        <div class="w-5 h-5"><svg
+                                class="w-[20.003250122070312px] h-[20.003250122070312px] text-slate-400"></svg>
+                        </div>
+                    </div>
+                    <div class="flex flex-col"><span
+                            class="font-bold text-[10px] leading-[15px] underline text-slate-400">ISO 27001
+                        Certified</span></div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </body>
 
 </html>
