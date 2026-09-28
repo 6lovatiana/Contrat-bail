@@ -1,0 +1,13 @@
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/ContratBailApplication.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/model/ContratDeBail.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/model/Logement.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/model/PaiementLoyer.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/model/StatutContrat.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/model/StatutPaiement.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/model/TypeCompteurJirama.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/model/Utilisateur.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/repository/ContratDeBailRepository.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/repository/LogementRepository.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/repository/PaiementLoyerRepository.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/repository/UtilisateurRepository.java
+/home/dylqn/Mandresy/S5/Droit des affaires/Toavina/Contrat-bail/src/main/java/mg/bailtech/web/ContratController.java
