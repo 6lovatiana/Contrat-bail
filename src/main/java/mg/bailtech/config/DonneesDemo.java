@@ -48,7 +48,14 @@ public class DonneesDemo implements ApplicationRunner {
      * dans la base que sous forme de hachage à sel variable, et sert uniquement
      * à allow l'équipe de se connecter en développement.
      */
-    private static final String MOT_DE_PASSE_DEMO = "Bailtech2026!";
+    /**
+     * Mot de passe effectivement appliqué aux comptes de démonstration.
+     *
+     * <p>Surchargeable par {@code bailtech.demo.mot-de-passe} : changer un mot
+     * de passe de test ne doit pas demander une recompilation.
+     */
+    @Value("${bailtech.demo.mot-de-passe:Bailtech2026!}")
+    private String motDePasseDemo;
 
     /**
      * Première période admissible par la contrainte
@@ -84,6 +91,11 @@ public class DonneesDemo implements ApplicationRunner {
             LOG.info("Jeu de données de démonstration désactivé (bailtech.demo=false).");
             return;
         }
+
+        // Les mots de passe de démonstration sont réparés avant toute autre
+        // chose : c'est la condition pour que la connexion fonctionne.
+        reparerMotsDePasse();
+
         if (utilisateurs.count() > 0) {
             LOG.info("Base déjà peuplée : jeu de démonstration ignoré.");
             return;
@@ -171,6 +183,51 @@ public class DonneesDemo implements ApplicationRunner {
     }
 
     /**
+     * Remplace les mots de passe de démonstration qui ne sont pas des empreintes
+     * BCrypt exploitables.
+     *
+     * <p>Les bases installées avant l'authentification contiennent souvent un
+     * texte de remplacement du type <code>{demo-bailtech}</code> à la place de
+     * l'empreinte. Sans login, ce défaut restait invisible : rien ne vérifiait
+     * le mot de passe. Dès qu'une page de connexion existe, il devient un
+     * verrou — plus personne ne peut entrer, y compris l'équipe qui voulait
+     * simplement voir l'application.
+     *
+     * <p>Seules les valeurs qui ne commencent pas par <code>$2</code> — le
+     * préfixe de BCrypt — sont réécrites. Un mot de passe réel, même erroné,
+     * n'est jamais touché : réécrire un mot de passe choisi par un usancier
+     * pour qu'il redevienne le mot de passe de démonstration serait une
+     *.takeover de compte, pas une réparation.
+     *
+     * <p>L'opération est journalisée ligne par ligne : elle réécrit une donnée
+     * d'authentification, elle doit être visible.
+     *
+     * <p>Elle est destructive et ne se justifie qu'en démonstration. En
+     * production, {@code bailtech.demo=false} la désactive entièrement, et la
+     * création des comptes relève alors d'une procédure d'administration.
+     */
+    private void reparerMotsDePasse() {
+        List<Utilisateur> tous = utilisateurs.findAllByOrderByNomAscPrenomAsc();
+        List<Utilisateur> repares = new ArrayList<>();
+        for (Utilisateur utilisateur : tous) {
+            String empreinte = utilisateur.getMotDePasse();
+            if (empreinte != null && empreinte.startsWith("$2")) {
+                continue;
+            }
+            LOG.warn("Mot de passe de l'utilisateur n° {} (« {} ») non exploitable : "
+                    + "réécrit avec l'empreinte BCrypt du mot de passe de démonstration.",
+                    utilisateur.getId(), utilisateur.getNom());
+            utilisateur.setMotDePasse(authentification.hacherDemonstration(motDePasseDemo));
+            repares.add(utilisateur);
+        }
+        if (!repares.isEmpty()) {
+            utilisateurs.saveAll(repares);
+            LOG.info("{} mot(s) de passe de démonstration réécrit(s) : la connexion "
+                    + "est possible avec le mot de passe de démonstration.", repares.size());
+        }
+    }
+
+    /**
      * Premier jour du mois de la date fournie.
      * <p>
      * L'année <em>et</em> le mois sont préservés : seule l'année est ramenée au
@@ -224,7 +281,7 @@ public class DonneesDemo implements ApplicationRunner {
         // Empreinte BCrypt, et non le mot de passe en clair : la colonne
         // utilisateur.mot_de_passe ne doit jamais contenir un secret lisible,
         // même dans un jeu de démonstration.
-        utilisateur.setMotDePasse(authentification.hacherDemonstration(MOT_DE_PASSE_DEMO));
+        utilisateur.setMotDePasse(authentification.hacherDemonstration(motDePasseDemo));
         return utilisateur;
     }
 

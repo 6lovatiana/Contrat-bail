@@ -14,6 +14,7 @@ C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\r
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\repository\PaiementLoyerRepository.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\repository\UtilisateurRepository.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\AuthentificationService.java
+C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\BailleurCourantService.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\ContratPdfService.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\ContratService.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\ConversionMontant.java
@@ -22,7 +23,10 @@ C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\s
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\MoteurRepartitionJirama.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\RegleMetierException.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\service\StockageSecuriseService.java
+C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\web\AccesRefuseException.java
+C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\web\ConnexionController.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\web\ContratController.java
+C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\web\DonneesCommunes.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\web\dto\ContratForm.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\web\dto\ContratPdfModel.java
 C:\Tou\Etude\Tou\github\contrat de bail\Contrat-bail\src\main\java\mg\bailtech\web\dto\DocumentPdf.java

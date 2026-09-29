@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Accès refusé — Bailtech</title>
+</head>
+
+<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
+
+<!--
+    Écran rendu en réponse à un 403 (AccesRefuseException).
+
+    Il ne reprend pas la navigation : l'appelant n'est pas autorisé sur la
+    ressource demandée, lui proposer les liens de gestion serait paradoxal.
+    Le message ne nomme pas le propriétaire réel de la ressource refusée.
+-->
+<main class="w-full max-w-lg flex flex-col items-center gap-6 text-center">
+    <img th:src="@{/icons/coffre-fort.png}" alt="" class="w-16 h-16">
+
+    <div class="flex flex-col gap-2">
+        <h1 class="text-2xl font-bold text-gray-900">Accès refusé</h1>
+        <!--
+            Le libellé de repli évite l'apostrophe : dans une chaîne SpEL
+            délimitée par des apostrophes, « n'est » termine la chaîne et fait
+            échouer l'analyse de la page entière.
+        -->
+        <p class="text-base text-gray-500" th:text="${messageErreur ?: 'Ressource non accessible.'}">
+            Ressource non accessible.
+        </p>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-center gap-3">
+        <a th:href="@{/dashboard}"
+           class="flex items-center px-5 py-2.5 rounded-xl bg-blue-900">
+            <span class="text-base font-semibold text-white">Retour au tableau de bord</span>
+        </a>
+        <a th:href="@{/contrats}"
+           class="flex items-center px-5 py-2.5 rounded-xl bg-white border border-solid border-slate-200">
+            <span class="text-base font-semibold text-blue-900">Mes contrats</span>
+        </a>
+    </div>
+</main>
+
+</body>
+
+</html>

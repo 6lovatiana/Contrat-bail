@@ -55,6 +55,20 @@ public interface ContratDeBailRepository extends JpaRepository<ContratDeBail, In
     // Listes par statut / par partie
     // ------------------------------------------------------------------
 
+    /**
+     * Charge un contrat par son identifiant, en préchargeant le propriétaire du
+     * bien.
+     *
+     * <p>Nécessaire pour tout contrôle d'accès : savoir à qui appartient un
+     * contrat impose de lire {@code logement.proprietaire}, or ces associations
+     * sont paresseuses et la session est fermée avant le rendu
+     * ({@code open-in-view=false}). {@code findById} laisserait un proxy non
+     * initialisé, dont l'accès lèverait une {@code LazyInitializationException}.
+     */
+    @EntityGraph(attributePaths = {"logement", "logement.proprietaire", "locataire"})
+    @Query("select c from ContratDeBail c where c.id = :id")
+    Optional<ContratDeBail> findByIdAvecProprietaire(@Param("id") Integer id);
+
     @EntityGraph(attributePaths = {"logement", "locataire"})
     List<ContratDeBail> findByStatutActuelOrderByDateDebutDesc(StatutContrat statutActuel);
 

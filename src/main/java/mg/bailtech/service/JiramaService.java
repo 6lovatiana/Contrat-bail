@@ -230,10 +230,17 @@ public class JiramaService {
     /**
      * Calcule la répartition puis l'impute sur l'échéance de chaque locataire.
      *
+     * <p><strong>Privée à dessein</strong> : cette méthode écrit en base et ne
+     * connaît pas le bailleur. Elle n'est atteignable que par
+     * {@link #appliquer(JiramaForm, Utilisateur)}, qui a vérifié le périmètre.
+     * La laisser publique rendrait possible un appel ultérieur — un rapport,
+     * une tâche de nuit — contournant le contrôle, sans que l'appelant s'en
+     * aperçoive.
+     *
      * @return le détail des écritures effectuées
      */
     @Transactional
-    public ResultatJirama appliquer(JiramaForm formulaire) {
+    private ResultatJirama appliquerVerifie(JiramaForm formulaire) {
         ResultatJirama resultat = calculer(formulaire);
         YearMonth periode = resultat.getPeriode();
 
@@ -254,6 +261,65 @@ public class JiramaService {
         LOG.info("Charges JIRAMA de {} imputees sur {} echeance(s), {} reportee(s).",
                 periode, ecritures.size() - reportees, reportees);
         return resultat;
+    }
+
+    /**
+     * Variante qui refuse d'écrire si le formulaire désigne un bien ou un
+     * contrat hors du parc du bailleur.
+     *
+     * <p>Le contrôle est fait <em>avant</em> toute écriture, et il est bloquant
+     * : la répartition étant recalculée à partir des seuls relevés vérifiés, un
+     * contrat étranger ne figure simplement pas dans le résultat. L'ignorer
+     * silencieusement, comme le fait {@link #reverifierIndexDepart}, laisserait
+     * croire à une imputation complète alors qu'une partie a été omise.
+     *
+     * @throws RegleMetierException si un identifiant du formulaire n'appartient
+     *         pas au bailleur
+     */
+    @Transactional
+    public ResultatJirama appliquer(JiramaForm formulaire, Utilisateur bailleur) {
+        verifierPerimetre(formulaire, bailleur);
+        return appliquerVerifie(formulaire);
+    }
+
+    /**
+     * Vérifie que tous les identifiants du formulaire désignent des ressources
+     * du bailleur.
+     *
+     * @throws RegleMetierException au premier identifiant étranger
+     */
+    private void verifierPerimetre(JiramaForm formulaire, Utilisateur bailleur) {
+        if (bailleur == null) {
+            throw new RegleMetierException(null, "jirama.bailleur.absent",
+                    "Aucun bailleur connecté : reconnectez-vous pour imputer des charges.");
+        }
+        Integer identifiantBailleur = bailleur.getId();
+
+        if (formulaire.getLogementId() != null) {
+            Logement bien = logements.findById(formulaire.getLogementId()).orElse(null);
+            if (bien == null || bien.getProprietaire() == null
+                    || !identifiantBailleur.equals(bien.getProprietaire().getId())) {
+                LOG.warn("Imputation JIRAMA refusée : le bien n° {} n'appartient pas au bailleur n° {}.",
+                        formulaire.getLogementId(), identifiantBailleur);
+                throw new RegleMetierException("logementId", "jirama.logement.autorisation",
+                        "Le bien indiqué n'appartient pas à votre parc immobilier.");
+            }
+        }
+
+        for (ReleveSousCompteur releve : formulaire.getSousCompteurs()) {
+            if (releve == null || releve.getContratId() == null) {
+                continue;
+            }
+            ContratDeBail contrat = contrats.findById(releve.getContratId()).orElse(null);
+            if (contrat == null || contrat.getLogement() == null
+                    || contrat.getLogement().getProprietaire() == null
+                    || !identifiantBailleur.equals(contrat.getLogement().getProprietaire().getId())) {
+                LOG.warn("Imputation JIRAMA refusée : le contrat n° {} n'appartient pas au bailleur n° {}.",
+                        releve.getContratId(), identifiantBailleur);
+                throw new RegleMetierException("sousCompteurs", "jirama.contrat.autorisation",
+                        "Un des relevés désigne un contrat qui ne fait pas partie de votre parc.");
+            }
+        }
     }
 
     /**

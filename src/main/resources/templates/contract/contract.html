@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: entete('Nouveau contrat de bail')}">
+    <meta charset="UTF-8">
+    <title>Bailtech</title>
+</head>
+
+<body class="bg-slate-50">
+
+<div class="flex min-h-screen w-full flex-col lg:flex-row">
+
+    <div th:replace="~{fragments/layout :: menu('contrats')}"></div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <header th:replace="~{fragments/layout :: en-tete('Nouveau contrat de bail')}"></header>
+
+        <div class="flex min-w-0 flex-1 flex-col xl:flex-row">
+
+            <!-- ================= Formulaire ================= -->
+            <!--
+                th:object + th:field : ContratForm est lié par propriétés.
+                th:field sur bailleurId est relu et réécrit par le contrôleur
+                depuis la session avant usage ; le champ masqué reste affiché
+                pour que le formulaire reste auto-suffisant, mais sa valeur
+                n'a aucune valeur d'autorisation.
+            -->
+            <form th:object="${contratForm}" th:action="@{/contrats}" method="post"
+                  class="flex min-w-0 flex-1 flex-col self-stretch border-solid border-slate-200 bg-white">
+
+                <div class="flex flex-col self-stretch px-4 py-6 border-solid border-slate-50 sm:px-8">
+                    <!--
+                        Fil des étapes. L'export fixait le premier trait à
+                        w-[464px] et posait les quatre pastilles en colonne :
+                        le bloc était centré seulement sur 1440px. Les étapes
+                        sont maintenant réparties sur la largeur disponible.
+                    -->
+                    <ol class="flex items-center justify-between self-stretch">
+                        <li class="flex flex-1 items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-900">
+                                <span class="text-base font-bold text-center text-white">1</span>
+                            </div>
+                            <span class="text-xs font-bold uppercase tracking-wide text-blue-900">Parties</span>
+                        </li>
+                        <li class="flex flex-1 items-center gap-3 pl-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-solid border-slate-200 bg-slate-50">
+                                <span class="text-base font-bold text-center text-blue-900">2</span>
+                            </div>
+                            <span class="text-xs font-bold uppercase tracking-wide text-blue-900">Le bien</span>
+                        </li>
+                        <li class="flex flex-1 items-center gap-3 pl-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-solid border-slate-200 bg-slate-50">
+                                <span class="text-base font-bold text-center text-blue-900">3</span>
+                            </div>
+                            <span class="text-xs font-bold uppercase tracking-wide text-blue-900">Conditions</span>
+                        </li>
+                        <li class="flex flex-1 items-center gap-3 pl-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-solid border-slate-200 bg-slate-50">
+                                <span class="text-base font-bold text-center text-blue-900">4</span>
+                            </div>
+                            <span class="text-xs font-bold uppercase tracking-wide text-blue-900">Validation</span>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="flex flex-1 flex-col gap-6 self-stretch overflow-y-auto p-4 sm:p-8">
+
+                    <!-- Messages de session et erreurs globales -->
+                    <div th:if="${messageConfirmation}" role="status"
+                         class="flex items-center gap-2 self-stretch rounded-xl border border-solid border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
+                        <span class="text-sm font-semibold" th:text="${messageConfirmation}">Contrat enregistré.</span>
+                    </div>
+                    <div th:if="${erreurInitiale}" role="alert"
+                         class="flex flex-col gap-1 self-stretch rounded-xl border border-solid border-red-200 bg-red-50 px-4 py-3">
+                        <span class="text-sm font-semibold text-red-700" th:text="${erreurInitiale}">Aucun bailleur</span>
+                    </div>
+                    <div th:if="${#fields.hasGlobalErrors()}" role="alert"
+                         class="flex flex-col gap-1 self-stretch rounded-xl border border-solid border-red-200 bg-red-50 px-4 py-3">
+                        <p th:each="err : ${#fields.globalErrors()}" th:text="${err.defaultMessage}"
+                           class="text-sm font-semibold text-red-700">Erreur globale</p>
+                    </div>
+
+                    <!-- ============ Étape 1 : les parties ============ -->
+                    <section class="flex flex-col gap-6 self-stretch">
+                        <h2 class="flex items-center gap-3 self-stretch text-lg font-bold text-slate-900">
+                            <img th:src="@{/icons/immobilier.png}" alt="" class="h-5 w-5">
+                            Le bailleur (propriétaire)
+                        </h2>
+
+                        <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                            <div class="flex flex-1 flex-col gap-2">
+                                <span class="text-sm font-semibold text-slate-600">Nom complet</span>
+                                <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                    <span class="text-base font-normal text-slate-800"
+                                          th:text="${bailleur?.nomComplet ?: '—'}">RAZAFINDRAKOTO Jean-Luc</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <span class="text-sm font-semibold text-slate-600">Numéro CIN</span>
+                                <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                    <span class="text-base font-normal text-slate-800"
+                                          th:text="${bailleur?.cinNumero ?: '—'}">101 234 567 890</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <span class="text-sm font-semibold text-slate-600">Adresse de résidence</span>
+                                <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                    <span class="text-base font-normal text-slate-800"
+                                          th:text="${bailleur?.adresseActuelle ?: '—'}">Lot IV X 45bis</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="self-stretch h-px border-t border-solid border-slate-100"></div>
+
+                    <section class="flex flex-col gap-6 self-stretch">
+                        <h2 class="flex items-center gap-3 self-stretch text-lg font-bold text-slate-900">
+                            <img th:src="@{/icons/groupe-d'utilisateurs.png}" alt="" class="h-5 w-5">
+                            Le locataire
+                        </h2>
+
+                        <div class="flex flex-col gap-2 self-stretch">
+                            <span class="text-sm font-semibold text-slate-600">Locataire déjà enregistré (facultatif)</span>
+                            <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                <select th:field="*{locataireId}"
+                                        class="w-full bg-transparent text-base text-slate-800 outline-none">
+                                    <option value="">— Saisir un nouveau locataire ci-dessous —</option>
+                                    <option th:each="candidat : ${locatairesDisponibles}"
+                                            th:value="${candidat.id}"
+                                            th:text="|${candidat.nomComplet} — CIN ${candidat.cinNumero}|">
+                                        ANDRY Tiana Rakoto — 201054776688
+                                    </option>
+                                </select>
+                            </div>
+                            <p class="text-xs text-slate-400"
+                               th:text="|Locataires libres de tout bail en cours : ${#lists.size(locatairesDisponibles)}.|">
+                                0.</p>
+                        </div>
+
+                        <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="nom" class="text-sm font-semibold text-slate-600">Nom</label>
+                                <input th:field="*{nom}" type="text" maxlength="100" placeholder="RAZAFINDRAKOTO"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{nom}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="prenom" class="text-sm font-semibold text-slate-600">Prénom(s)</label>
+                                <input th:field="*{prenom}" type="text" maxlength="100" placeholder="Jean-Luc"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{prenom}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="cinNumero" class="text-sm font-semibold text-slate-600">Numéro CIN / passport</label>
+                                <input th:field="*{cinNumero}" type="text" inputmode="numeric" maxlength="19"
+                                       placeholder="12 chiffres"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{cinNumero}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="cinDateDelivrance" class="text-sm font-semibold text-slate-600">CIN délivrée le</label>
+                                <input th:field="*{cinDateDelivrance}" type="date"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none">
+                                <p th:errors="*{cinDateDelivrance}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="cinLieuDelivrance" class="text-sm font-semibold text-slate-600">Lieu de délivrance</label>
+                                <input th:field="*{cinLieuDelivrance}" type="text" maxlength="100"
+                                       placeholder="Commissariat d'Antananarivo"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{cinLieuDelivrance}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="telephone" class="text-sm font-semibold text-slate-600">Téléphone</label>
+                                <input th:field="*{telephone}" type="tel" maxlength="20" placeholder="+261 34 00 000 00"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{telephone}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="adresseActuelle" class="text-sm font-semibold text-slate-600">Adresse actuelle</label>
+                                <input th:field="*{adresseActuelle}" type="text"
+                                       placeholder="Adresse du locataire avant emménagement"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{adresseActuelle}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="email" class="text-sm font-semibold text-slate-600">Email</label>
+                                <input th:field="*{email}" type="email" maxlength="150" placeholder="email@exemple.mg"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{email}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                        </div>
+                        <p th:if="${#fields.hasErrors('locataireRenseigne')}" th:errors="*{locataireRenseigne}"
+                           class="text-xs text-red-600">Locataire non renseigné.</p>
+                    </section>
+
+                    <div class="self-stretch h-px border-t border-solid border-slate-100"></div>
+
+                    <!-- ============ Étape 2 : le bien ============ -->
+                    <section class="flex flex-col gap-6 self-stretch">
+                        <h2 class="flex items-center gap-3 self-stretch text-lg font-bold text-slate-900">
+                            <img th:src="@{/icons/immobilier.png}" alt="" class="h-5 w-5">
+                            Le bien (logement)
+                        </h2>
+
+                        <div th:if="${#lists.isEmpty(logementsDisponibles)}" role="status"
+                             class="flex flex-col gap-1 self-stretch rounded-xl border border-solid border-amber-200 bg-amber-50 px-4 py-3">
+                            <span class="text-sm font-semibold text-amber-900">Aucun logement disponible</span>
+                            <span class="text-xs text-amber-800">
+                                Tous vos biens font déjà l'objet d'un contrat en cours. Enregistrez d'abord
+                                un nouveau bien dans le module « biens ».
+                            </span>
+                        </div>
+
+                        <div th:unless="${#lists.isEmpty(logementsDisponibles)}" class="flex flex-col self-stretch gap-4">
+                            <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                                <div class="flex flex-1 flex-col gap-2">
+                                    <label for="logementId" class="text-sm font-semibold text-slate-600">Logement à louer</label>
+                                    <select th:field="*{logementId}"
+                                            class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none">
+                                        <option th:each="bien : ${logementsDisponibles}" th:value="${bien.id}"
+                                                th:text="|${bien.libelle} — ${bien.typeDeBien}|">
+                                            Lot IVG 22 — appartement T3
+                                        </option>
+                                    </select>
+                                    <p th:errors="*{logementId}" class="text-xs text-red-600">Erreur</p>
+                                </div>
+                                <div class="flex flex-1 flex-col gap-2">
+                                    <span class="text-sm font-semibold text-slate-600">Type de bien</span>
+                                    <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                        <span class="text-base font-normal text-slate-800" th:text="${contratForm.bienType}">appartement T3</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-1 flex-col gap-2">
+                                    <span class="text-sm font-semibold text-slate-600">Composition</span>
+                                    <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                        <span class="text-base font-normal text-slate-800"
+                                              th:text="|${contratForm.bienNombrePieces} pièce(s) principale(s)|">3 pièce(s)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                                <div class="flex flex-1 flex-col gap-2">
+                                    <span class="text-sm font-semibold text-slate-600">Fokontany / ville</span>
+                                    <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                        <span class="text-base font-normal text-slate-800"
+                                              th:text="|${contratForm.bienQuartier}, ${contratForm.bienVille}|">
+                                            Ivandry, Antananarivo</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-1 flex-col gap-2">
+                                    <span class="text-sm font-semibold text-slate-600">Gestion du compteur JIRAMA</span>
+                                    <div class="flex justify-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3">
+                                        <span class="text-base font-normal text-slate-800" th:text="${contratForm.bienModeComptage}">Compteur unique</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="self-stretch h-px border-t border-solid border-slate-100"></div>
+
+                    <!-- ============ Étape 3 : les conditions ============ -->
+                    <section class="flex flex-col gap-6 self-stretch">
+                        <h2 class="flex items-center gap-3 self-stretch text-lg font-bold text-slate-900">
+                            <img th:src="@{/icons/contracter.png}" alt="" class="h-5 w-5">
+                            Conditions du bail
+                        </h2>
+
+                        <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="dateDebut" class="text-sm font-semibold text-slate-600">Date de début</label>
+                                <input th:field="*{dateDebut}" type="date"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none">
+                                <p th:errors="*{dateDebut}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="dateFin" class="text-sm font-semibold text-slate-600">Date de fin</label>
+                                <input th:field="*{dateFin}" type="date"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none">
+                                <p th:errors="*{dateFin}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                        </div>
+                        <p th:if="${#fields.hasErrors('datesCoherentes')}" th:errors="*{datesCoherentes}"
+                           class="text-xs text-red-600">Dates incohérentes.</p>
+
+                        <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="montantLoyerMga" class="text-sm font-semibold text-slate-600">Loyer mensuel (MGA)</label>
+                                <input th:field="*{montantLoyerMga}" type="number" step="0.01" min="0" placeholder="400000"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{montantLoyerMga}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="montantCautionMga" class="text-sm font-semibold text-slate-600">Caution versée (MGA)</label>
+                                <input th:field="*{montantCautionMga}" type="number" step="0.01" min="0" placeholder="800000"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none placeholder:text-gray-400">
+                                <p th:errors="*{montantCautionMga}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col self-stretch gap-4 lg:flex-row">
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="jourPaiementMensuel" class="text-sm font-semibold text-slate-600">Paiement au plus tard le</label>
+                                <input th:field="*{jourPaiementMensuel}" type="number" min="1" max="31"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none">
+                                <p th:errors="*{jourPaiementMensuel}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                            <div class="flex flex-1 flex-col gap-2">
+                                <label for="dureePreavisMois" class="text-sm font-semibold text-slate-600">Préavis (mois)</label>
+                                <input th:field="*{dureePreavisMois}" type="number" min="0" max="36"
+                                       class="w-full rounded-xl border border-solid border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none">
+                                <p th:errors="*{dureePreavisMois}" class="text-xs text-red-600">Erreur</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="flex flex-col gap-3 self-stretch border-t border-solid border-slate-100 bg-slate-50 p-6 sm:flex-row sm:justify-between">
+                    <a th:href="@{/dashboard}"
+                       class="flex items-center justify-center rounded-xl border border-solid border-slate-200 px-6 py-2.5">
+                        <span class="text-base font-semibold text-center text-slate-500">Retour au tableau de bord</span>
+                    </a>
+                    <button type="submit"
+                            class="flex items-center justify-center gap-2 rounded-xl bg-blue-900 px-8 py-2.5">
+                        <span class="text-base font-bold text-center text-white">Enregistrer le contrat</span>
+                        <img th:src="@{/icons/send.png}" alt="" class="h-3 w-3 invert opacity-90">
+                    </button>
+                </div>
+            </form>
+
+            <!-- ================= Aperçu du contrat ================= -->
+            <!--
+                Aperçu à l'écran.
+
+                Ce bloc ne sert PAS au PDF : celui-ci est produit par un gabarit
+                distinct (contrat/contrat-pdf.html), rendu en XHTML par
+                ConfigurationImpression puis converti par Flying Saucer, à
+                partir d'un ContratPdfModel. Les deux ne partagent que leurs
+                données, jamais leur mise en forme.
+
+                Conséquence pratique : une classe Tailwind est sans effet ici
+                pour le PDF, et inversement une feuille de style d'impression
+                n'a pas cours à l'écran. Les largeurs fixes w-96 / w-[480px]
+                de l'export sont remplacées par une colonne flexible.
+            -->
+            <aside class="flex min-w-0 flex-1 flex-col self-stretch bg-slate-200 p-4 sm:p-8">
+                <article id="apercu-contrat" class="mx-auto flex w-full max-w-[480px] flex-col gap-6 bg-white p-8 text-slate-800">
+
+                    <h2 class="text-center text-xl font-bold uppercase underline">Contrat de bail à usage d'habitation</h2>
+
+                    <section class="flex flex-col gap-2">
+                        <p class="text-sm font-bold">Entre les soussignés :</p>
+                        <p>
+                            M. / Mme <span th:text="${contratForm.bailleurNomComplet}">[Bailleur]</span>,
+                            titulaire de la CIN n° <span th:text="${contratForm.bailleurCin}">[CIN]</span>,
+                            demeurant à <span th:text="${contratForm.bailleurAdresse}">[Adresse]</span>,
+                            ci-après dénommé «&nbsp;le Bailleur&nbsp;», d'une part,
+                        </p>
+                        <p>
+                            M. / Mme / Mlle <span th:text="${contratForm.locataireNomComplet}">[Locataire]</span>,
+                            titulaire de la CIN n° <span th:text="${contratForm.locataireCin}">[CIN]</span>,
+                            demeurant à <span th:text="${contratForm.locataireAdresse}">[Adresse]</span>,
+                            ci-après dénommé «&nbsp;le Locataire&nbsp;», d'autre part.
+                        </p>
+                    </section>
+
+                    <section class="flex flex-col gap-2">
+                        <h3 class="text-sm font-bold">Article 1 : Objet du contrat</h3>
+                        <p>
+                            Le présent contrat a pour objet la location d'un bien immobilier de type
+                            <span th:text="${contratForm.bienType}">[type]</span>, situé au Lot
+                            <span th:text="${contratForm.bienAdresse}">[lot]</span>,
+                            <span th:text="${contratForm.bienQuartier}">[quartier]</span>,
+                            <span th:text="${contratForm.bienVille}">[ville]</span>.
+                            Le locataire déclare bien connaître les lieux pour les avoir visités.
+                        </p>
+                    </section>
+
+                    <section class="flex flex-col gap-2">
+                        <h3 class="text-sm font-bold">Article 2 : Durée et préavis</h3>
+                        <p>
+                            Le bail est consenti du <span th:text="${contratForm.dateDebutLisible}">[début]</span>
+                            au <span th:text="${contratForm.dateFinLisible}">[fin]</span>.
+                            La durée du préavis est fixée à
+                            <span th:text="${contratForm.dureePreavisMois}">3</span>
+                            mois pour les deux parties.
+                        </p>
+                    </section>
+
+                    <section class="flex flex-col gap-2">
+                        <h3 class="text-sm font-bold">Article 3 : Loyer et charges</h3>
+                        <p>
+                            Le loyer mensuel est fixé à la somme de
+                            <span th:text="${contratForm.loyerLisible}">[montant]</span> MGA,
+                            payable d'avance avant le
+                            <span th:text="${contratForm.jourPaiementLisible}">[jour]</span>
+                            de chaque mois. Les charges JIRAMA (eau et électricité) sont à la charge
+                            exclusive du locataire selon le mode de comptage :
+                            <span th:text="${contratForm.bienModeComptage}">[mode]</span>.
+                        </p>
+                    </section>
+
+                    <section class="flex flex-col gap-2">
+                        <h3 class="text-sm font-bold">Article 4 : Caution</h3>
+                        <p>
+                            À titre de garantie, le locataire verse ce jour une somme correspondant à
+                            <span th:text="${contratForm.cautionMoisLisible}">[0]</span> mois de loyer,
+                            soit <span th:text="${contratForm.cautionLisible}">[montant]</span> MGA.
+                            Elle sera restituée au locataire à la sortie du bien, sous déduction des
+                            éventuels impayés ou dommages constatés.
+                        </p>
+                    </section>
+
+                    <section class="flex flex-col gap-4 pt-6 sm:flex-row">
+                        <div class="flex flex-1 flex-col justify-between gap-2 rounded border border-dashed border-slate-300 p-4">
+                            <p class="text-xs font-bold underline"
+                               th:text="|Signature du bailleur — ${contratForm.bailleurNomComplet}|">Signature</p>
+                            <p class="text-center text-sm font-normal text-slate-400">Lu et approuvé</p>
+                        </div>
+                        <div class="flex flex-1 flex-col justify-between gap-2 rounded border border-dashed border-slate-300 p-4">
+                            <p class="text-xs font-bold underline"
+                               th:text="|Signature du locataire — ${contratForm.locataireNomComplet}|">Signature</p>
+                            <p class="text-center text-sm font-normal text-slate-400">Lu et approuvé</p>
+                        </div>
+                    </section>
+
+                    <section class="flex flex-col gap-2 border-2 border-solid border-slate-800 p-4">
+                        <p class="text-xs font-bold underline">Visa du Fokontany / Commune</p>
+                        <p class="text-[10px] font-medium">Espace réservé à l'autorité administrative</p>
+                    </section>
+
+                    <footer class="flex flex-col justify-between gap-2 border-t border-solid border-slate-100 pt-4 sm:flex-row sm:items-end">
+                        <p class="text-[10px] font-normal text-slate-500">
+                            Généré par Bailtech — Plateforme de gestion immobilière
+                        </p>
+                        <p class="text-[10px] font-normal text-slate-500"
+                           th:text="|Statut : ${contratEnregistre?.statutActuel?.libelle ?: 'Projet'}|">Projet</p>
+                    </footer>
+                </article>
+            </aside>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>
