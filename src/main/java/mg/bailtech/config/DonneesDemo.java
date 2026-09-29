@@ -2,6 +2,7 @@ package mg.bailtech.config;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import mg.bailtech.model.ContratDeBail;
@@ -15,6 +16,7 @@ import mg.bailtech.repository.ContratDeBailRepository;
 import mg.bailtech.repository.LogementRepository;
 import mg.bailtech.repository.PaiementLoyerRepository;
 import mg.bailtech.repository.UtilisateurRepository;
+import mg.bailtech.service.AuthentificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,12 +41,26 @@ public class DonneesDemo implements ApplicationRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(DonneesDemo.class);
 
-    private static final String MOT_DE_PASSE_DEMO = "{demo-bailtech}";
+    /**
+     * Mot de passe des comptes de démonstration, en clair. Il n'est jamais stocké
+     * tel quel&nbsp;: chaque fiche reçoit son empreinte BCrypt, calculée avec le
+     * sel aléatoire propre à cette empreinte. La valeur en clair ne figure donc
+     * dans la base que sous forme de hachage à sel variable, et sert uniquement
+     * à allow l'équipe de se connecter en développement.
+     */
+    private static final String MOT_DE_PASSE_DEMO = "Bailtech2026!";
+
+    /**
+     * Première période admissible par la contrainte
+     * {@code CHECK (periode_annee >= 2026)} du script d'initialisation.
+     */
+    private static final LocalDate PERIODE_MIN = LocalDate.of(PaiementLoyer.ANNEE_MIN, 1, 1);
 
     private final UtilisateurRepository utilisateurs;
     private final LogementRepository logements;
     private final ContratDeBailRepository contrats;
     private final PaiementLoyerRepository paiements;
+    private final AuthentificationService authentification;
 
     @Value("${bailtech.demo:false}")
     private boolean active;
@@ -52,11 +68,13 @@ public class DonneesDemo implements ApplicationRunner {
     public DonneesDemo(UtilisateurRepository utilisateurs,
                        LogementRepository logements,
                        ContratDeBailRepository contrats,
-                       PaiementLoyerRepository paiements) {
+                       PaiementLoyerRepository paiements,
+                       AuthentificationService authentification) {
         this.utilisateurs = utilisateurs;
         this.logements = logements;
         this.contrats = contrats;
         this.paiements = paiements;
+        this.authentification = authentification;
     }
 
     @Override
@@ -72,8 +90,10 @@ public class DonneesDemo implements ApplicationRunner {
         }
 
         LocalDate aujourdhui = LocalDate.now();
-        LocalDate moisPrecedent = debutDeMois(aujourdhui).minusMonths(1);
-        LocalDate moisCourant = debutDeMois(aujourdhui);
+        // Exemple pour le 28/09/2026 : [2026-09, 2026-08, 2026-07].
+        // Toutes les périodes restent >= PERIODE_MIN et sont distinctes les unes
+        // des autres, sinon la contrainte uq_paiement_periode le rejette.
+        List<LocalDate> periodes = periodesRecentes(aujourdhui, 3);
 
         Utilisateur bailleur = nouvelUtilisateur("RAZAFINDRAKOTO", "Jean-Luc", "101234567890",
                 aujourdhui.minusYears(12), "Antananarivo", "Ingénieur informaticien",
@@ -116,36 +136,84 @@ public class DonneesDemo implements ApplicationRunner {
                 aujourdhui.plusMonths(14), "3000000.00", "6000000.00", 5, StatutContrat.EN_ATTENTE_SIGNATURE);
         contrats.saveAll(List.of(actif1, actif2, actif3, enAttente));
 
-        paiements.saveAll(List.of(
-                nouveauPaiement(actif1, moisPrecedent.minusMonths(1), "1200000.00", "1200000.00",
-                        aujourdhui.minusMonths(1).withDayOfMonth(3), "MOBILE_MONEY", StatutPaiement.PAYE, true),
-                nouveauPaiement(actif1, moisPrecedent, "1200000.00", "1200000.00",
-                        aujourdhui.withDayOfMonth(4), "ESPECES", StatutPaiement.PAYE, true),
-                nouveauPaiement(actif1, moisCourant, "1200000.00", "400000.00",
-                        null, "MOBILE_MONEY", StatutPaiement.PARTIEL, false),
-                nouveauPaiement(actif2, moisPrecedent, "650000.00", "0.00",
-                        null, null, StatutPaiement.EN_RETARD, false),
-                nouveauPaiement(actif2, moisCourant, "650000.00", "0.00",
-                        null, null, StatutPaiement.A_PAYER, false),
-                nouveauPaiement(actif3, moisPrecedent, "800000.00", "800000.00",
-                        aujourdhui.withDayOfMonth(2), "VIREMENT", StatutPaiement.PAYE, true)));
+        List<PaiementLoyer> echeances = new ArrayList<>();
 
-        LOG.info("Jeu de démonstration chargé : 4 utilisateurs, 4 logements, 4 contrats, 6 échéances.");
+        // Contrat 1 : les mois les plus anciens sont soldés, le mois en cours est
+        // partiellement réglé. La boucle garantit une période distincte par ligne.
+        for (int i = periodes.size() - 1; i >= 1; i--) {
+            boolean lePlusAncien = i > 1;
+            echeances.add(nouveauPaiement(actif1, periodes.get(i), "1200000.00", "1200000.00",
+                    lePlusAncien ? aujourdhui.minusMonths(2).withDayOfMonth(3)
+                            : aujourdhui.withDayOfMonth(4),
+                    lePlusAncien ? "MOBILE_MONEY" : "ESPECES", StatutPaiement.PAYE, true));
+        }
+        echeances.add(nouveauPaiement(actif1, periodes.get(0), "1200000.00", "400000.00",
+                null, "MOBILE_MONEY", StatutPaiement.PARTIEL, false));
+
+        // Contrat 2 : un impayé sur le mois précédent, puis l'échéance du mois en cours.
+        if (periodes.size() > 1) {
+            echeances.add(nouveauPaiement(actif2, periodes.get(1), "650000.00", "0.00",
+                    null, null, StatutPaiement.EN_RETARD, false));
+        }
+        echeances.add(nouveauPaiement(actif2, periodes.get(0), "650000.00", "0.00",
+                null, null, StatutPaiement.A_PAYER, false));
+
+        // Contrat 3 : règlement du mois précédent.
+        if (periodes.size() > 1) {
+            echeances.add(nouveauPaiement(actif3, periodes.get(1), "800000.00", "800000.00",
+                    aujourdhui.withDayOfMonth(2), "VIREMENT", StatutPaiement.PAYE, true));
+        }
+        paiements.saveAll(echeances);
+
+        LOG.info("Jeu de démonstration chargé : 4 utilisateurs, 4 logements, 4 contrats, "
+                + "{} échéances (périodes {} à {}).", echeances.size(),
+                periodes.get(periodes.size() - 1), periodes.get(0));
     }
 
     /**
-     * Premier jour du mois, ramené à l'année plancher de la contrainte
-     * {@code CHECK (periode_annee >= 2026)} : le jeu de démonstration ne doit pas
-     * échouer si l'on l'exécute sur une base antérieure.
+     * Premier jour du mois de la date fournie.
+     * <p>
+     * L'année <em>et</em> le mois sont préservés : seule l'année est ramenée au
+     * plancher de la contrainte {@code CHECK (periode_annee >= 2026)}, le cas
+     * échéant. Écrire ici {@code LocalDate.of(annee, 1, 1)} ferait retomber tous
+     * les relevés sur janvier et ferait glisser le mois précédent sur l'année
+     * précédente, ce qui interromp le démarrage sur la contrainte SQL.
      */
     private static LocalDate debutDeMois(LocalDate date) {
         int annee = Math.max(date.getYear(), PaiementLoyer.ANNEE_MIN);
-        return LocalDate.of(annee, 1, 1);
+        return LocalDate.of(annee, date.getMonthValue(), 1);
     }
 
-    private static Utilisateur nouvelUtilisateur(String nom, String prenom, String cin,
-                                                 LocalDate cinDate, String cinLieu, String profession,
-                                                 String adresse, String telephone, String email) {
+    /**
+     * Les {@code nombre} dernières périodes mensuelles, de la plus récente à la
+     * plus ancienne, sans jamais descendre avant {@link #PERIODE_MIN}.
+     * <p>
+     * Exemple pour le 28/09/2026 : {@code [2026-09, 2026-08, 2026-07]}.
+     * <p>
+     * La liste retournée peut être plus courte que {@code nombre} — c'est le cas
+     * en janvier de l'année plancher, où aucune période antérieure n'est
+     * admissible. Les périodes retournées sont toujours strictement distinctes,
+     * ce qu'exige la contrainte {@code uq_paiement_periode} sur
+     * {@code (id_contrat, periode_mois, periode_annee)}.
+     */
+    private static List<LocalDate> periodesRecentes(LocalDate date, int nombre) {
+        List<LocalDate> periodes = new ArrayList<>(nombre);
+        LocalDate periode = debutDeMois(date);
+        periodes.add(periode);
+        while (periodes.size() < nombre) {
+            LocalDate precedente = periode.minusMonths(1);
+            if (precedente.isBefore(PERIODE_MIN)) {
+                break;
+            }
+            periodes.add(precedente);
+            periode = precedente;
+        }
+        return periodes;
+    }
+
+    private Utilisateur nouvelUtilisateur(String nom, String prenom, String cin,
+                                           LocalDate cinDate, String cinLieu, String profession,
+                                           String adresse, String telephone, String email) {
         Utilisateur utilisateur = new Utilisateur(nom, prenom, cin);
         utilisateur.setCinDateDelivrance(cinDate);
         utilisateur.setCinLieuDelivrance(cinLieu);
@@ -153,7 +221,10 @@ public class DonneesDemo implements ApplicationRunner {
         utilisateur.setAdresseActuelle(adresse);
         utilisateur.setTelephone(telephone);
         utilisateur.setEmail(email);
-        utilisateur.setMotDePasse(MOT_DE_PASSE_DEMO);
+        // Empreinte BCrypt, et non le mot de passe en clair : la colonne
+        // utilisateur.mot_de_passe ne doit jamais contenir un secret lisible,
+        // même dans un jeu de démonstration.
+        utilisateur.setMotDePasse(authentification.hacherDemonstration(MOT_DE_PASSE_DEMO));
         return utilisateur;
     }
 

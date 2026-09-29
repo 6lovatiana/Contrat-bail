@@ -22,6 +22,22 @@
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-validation</artifactId></dependency>
         <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><scope>runtime</scope></dependency>
+        <!-- Moteur documentaire : rendu HTML/XHTML -> PDF (OpenPDF, licence LGPL).
+             Volontairement sans le moteur iText d'origine pour éviter ses
+             restrictions de licence ; OpenPDF en est le successeur maintenu. -->
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf</artifactId>
+            <version>9.4.0</version>
+        </dependency>
+        <!-- Hachage des mots de passe (BCrypt, come l'attend le schema
+             Conception_base.md). Module isole : il n-active aucune
+             auto-configuration Spring Security, le depot des identites et la
+             gestion de session restant a brancher. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
     </dependencies>
     <build>

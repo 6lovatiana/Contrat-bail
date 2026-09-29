@@ -46,6 +46,26 @@ public final class Format {
                 .format(valeur.setScale(0, RoundingMode.HALF_UP));
     }
 
+    /**
+     * « 85 », « 4.2 », « 12.5 » : une quantité de consommation, au plus deux
+     * décimales, sans zéros de fin.
+     * <p>
+     * Conserve le point décimal — contrairement à {@link #montantEntier}, qui
+     * arrondirait 4.2 m³ en 4 m³. L'unité du relevé (kWh, m³) est ajoutée par le
+     * gabarit, qui connaît le contexte de chaque colonne.
+     */
+    public static String nombre(BigDecimal valeur) {
+        if (valeur == null) {
+            return "0";
+        }
+        BigDecimal arrondi = valeur.setScale(2, RoundingMode.HALF_UP)
+                .stripTrailingZeros();
+        // stripTrailingZeros laisse « 4E+1 » pour les valeurs entières de deux
+        // chiffres : toPlainString rétablit la notation décimale.
+        return arrondi.scale() < 0 ? arrondi.setScale(0, RoundingMode.HALF_UP).toPlainString()
+                : arrondi.toPlainString();
+    }
+
     /** « 01/10/2026 ». */
     public static String date(LocalDate valeur) {
         return valeur == null ? "" : DATE.format(valeur);

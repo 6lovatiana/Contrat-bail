@@ -40,6 +40,13 @@ public class PaiementLoyer {
     /** Année plancher de la contrainte {@code CHECK (periode_annee >= 2026)}. */
     public static final int ANNEE_MIN = 2026;
 
+    /**
+     * Première période admissible en base. Toute génération d'échéance doit
+     * s'arrêter à ce plancher : un contrat presque échu produirait sinon une
+     * ligne rejetée par PostgreSQL et interromprait le démarrage.
+     */
+    public static final LocalDate PERIODE_MIN = LocalDate.of(ANNEE_MIN, 1, 1);
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_paiement")
