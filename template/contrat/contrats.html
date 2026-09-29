@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title th:text="'Contrats — ' + (${bailleur != null} ? ${bailleur.nomComplet} : 'Bailtech')">Bailtech</title>
+</head>
+
+<body>
+<div class="w-[1440px] flex bg-slate-50">
+
+    <!-- Navigation latérale -->
+    <div class="flex flex-col justify-between self-stretch w-72 bg-blue-900">
+        <div class="flex flex-col self-stretch p-8">
+            <a th:href="@{/dashboard}" class="flex items-center gap-3 self-stretch">
+                <div class="w-10 h-10 flex justify-center items-center bg-emerald-500 rounded-lg">
+                    <div class="w-[22.5px] h-5"></div>
+                </div>
+                <div class="flex flex-col"><span class="font-bold text-2xl text-white">Bailtech</span></div>
+            </a>
+        </div>
+        <div class="flex flex-col justify-center self-stretch grow pt-4">
+            <div class="flex flex-col self-stretch grow px-4">
+                <div class="flex flex-col gap-2 self-stretch">
+                    <a th:href="@{/dashboard}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-5 h-4"></div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Tableau de
+                                bord</span></div>
+                    </a>
+                    <a th:href="@{/contrats}" class="flex items-center gap-3 self-stretch bg-white px-4 py-3 rounded-xl">
+                        <div class="w-3 h-4"></div>
+                        <div class="flex flex-col"><span class="font-medium text-base text-blue-900">Contrats</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/locataires}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-5 h-4"></div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Locataires</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/jirama}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-3.5 h-4"></div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Calculateur
+                                JIRAMA</span></div>
+                    </a>
+                    <a th:href="@{/locataires}" class="flex items-center gap-3 self-stretch px-4 py-3 rounded-xl">
+                        <div class="w-[18px] h-4"></div>
+                        <div class="flex flex-col"><span class="font-normal text-base text-white">Documents</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col self-stretch p-6">
+            <div class="flex flex-col gap-2 self-stretch bg-white p-4 rounded-2xl">
+                <div class="flex flex-col self-stretch"><span
+                        class="font-semibold text-xs underline text-white">Visionneuse</span></div>
+                <div class="flex flex-col self-stretch"><span
+                        class="font-normal text-[11px] leading-[16.5px] text-white">Consultez et telechargez
+                    les contrats signs.</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col self-stretch grow">
+        <!-- En-tête -->
+        <div class="flex justify-between items-center self-stretch h-20 bg-white px-8 border-solid border-gray-100">
+            <div class="flex flex-col"><span class="font-bold text-xl text-gray-900">Contrats de bail</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex flex-col">
+                    <div class="flex flex-col items-end self-stretch"><span
+                            class="font-semibold text-sm text-right text-gray-900"
+                            th:text="${bailleur != null} ? ${bailleur.nomComplet} : 'Aucun bailleur'">M.
+                        Razafindrakoto</span></div>
+                    <div class="flex flex-col items-end self-stretch"><span
+                            class="font-normal text-xs text-right text-gray-500">Propriétaire</span></div>
+                </div>
+                <div class="w-10 h-10 flex justify-center items-center bg-emerald-50 rounded-full">
+                    <span class="font-bold text-sm text-emerald-700"
+                          th:text="${bailleur != null} ? ${bailleur.initiales} : '?'">JR</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-6 self-stretch grow p-8">
+            <div th:if="${messageVide}" class="flex flex-col gap-1 self-stretch bg-amber-50 border border-solid border-amber-200 px-4 py-3 rounded-xl">
+                <span class="font-semibold text-sm text-amber-900" th:text="${messageVide}">Aucun bailleur</span>
+            </div>
+
+            <div class="flex justify-between items-center self-stretch">
+                <div class="flex flex-col">
+                    <div class="flex flex-col self-stretch"><span
+                            class="font-bold text-2xl text-gray-900">Historique des baux</span></div>
+                    <div class="flex flex-col self-stretch"><span
+                            class="font-normal text-base text-gray-500"
+                            th:text="'(' + ${nbContrats} + ' contrat(s))'">(0 contrat(s))</span></div>
+                </div>
+                <a th:href="@{/contrats/create-wizard}"
+                   class="flex items-center gap-2 bg-emerald-500 px-5 py-[11px] rounded-xl">
+                    <span class="font-semibold text-base text-center text-white">Nouveau contrat</span>
+                </a>
+            </div>
+
+            <div th:if="${#lists.isEmpty(contrats)}"
+                 class="flex flex-col items-center self-stretch bg-white p-12 rounded-2xl border border-solid border-slate-200 text-center">
+                <span class="font-medium text-sm text-slate-500">Aucun contrat enregistré.</span>
+                <a th:href="@{/contrats/create-wizard}" class="font-semibold text-sm text-blue-900 mt-2">Créer
+                    un contrat</a>
+            </div>
+
+            <div class="flex flex-col self-stretch bg-white rounded-2xl border border-solid border-slate-200 overflow-hidden">
+                <div class="flex flex-col self-stretch bg-slate-50 border-b border-solid border-slate-100">
+                    <div class="flex items-center self-stretch px-6 py-3">
+                        <div class="w-[220px] flex flex-col"><span
+                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">N°</span></div>
+                        <div class="w-[220px] flex flex-col"><span
+                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">Locataire</span>
+                        </div>
+                        <div class="grow flex flex-col"><span
+                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">Bien</span>
+                        </div>
+                        <div class="w-[130px] flex flex-col"><span
+                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">Loyer
+                            (MGA)</span></div>
+                        <div class="w-[160px] flex flex-col"><span
+                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">Statut</span>
+                        </div>
+                        <div class="w-[260px] flex flex-col items-end"><span
+                                class="font-bold text-[10px] leading-[15px] underline text-slate-400">Documents</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:each="contrat : ${contrats}"
+                     class="flex items-center self-stretch px-6 py-4 border-t border-solid border-slate-50">
+                    <div class="w-[220px] flex flex-col">
+                        <span class="font-semibold text-sm text-slate-900"
+                              th:text="'N° ' + ${contrat.id}">N° 1</span>
+                    </div>
+                    <div class="w-[220px] flex flex-col">
+                        <span class="font-medium text-sm text-slate-800" th:text="${contrat.locataire}">Sahondra
+                            R.</span>
+                    </div>
+                    <div class="grow flex flex-col">
+                        <span class="font-normal text-sm text-slate-600" th:text="${contrat.bien}">Lot IVG 22</span>
+                    </div>
+                    <div class="w-[130px] flex flex-col">
+                        <span class="font-bold text-sm text-slate-900" th:text="${contrat.loyer}">1.200.000
+                            Ar</span>
+                    </div>
+                    <div class="w-[160px] flex flex-col">
+                        <div class="flex self-start px-3 py-[3.5px] rounded-full" th:classappend="${contrat.statutCss}">
+                            <span class="font-semibold text-xs" th:text="${contrat.statut}">Actif</span>
+                        </div>
+                    </div>
+                    <div class="w-[260px] flex flex-col items-end gap-1">
+                        <div class="flex items-center gap-2">
+                            <a th:href="@{'/contrats/' + ${contrat.id}}"
+                               class="flex items-center px-3 py-1.5 rounded-lg border border-solid border-slate-200">
+                                <span class="font-semibold text-xs text-blue-900">Fiche</span>
+                            </a>
+                            <a th:href="@{'/contrats/' + ${contrat.id} + '/pdf'}" target="_blank"
+                               class="flex items-center px-3 py-1.5 rounded-lg border border-solid border-slate-200">
+                                <span class="font-semibold text-xs text-blue-900">Voir le PDF</span>
+                            </a>
+                            <a th:href="@{'/contrats/' + ${contrat.id} + '/pdf/telecharger'}"
+                               class="flex items-center px-3 py-1.5 rounded-lg bg-blue-900">
+                                <span class="font-semibold text-xs text-white">Télécharger</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

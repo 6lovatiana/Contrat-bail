@@ -30,12 +30,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * Contrôleur des pages de consultation : tableau de bord, coffre-fort documentaire
- * et calculateur JIRAMA.
+ * Contrôleur des pages de consultation : tableau de bord et coffre-fort
+ * documentaire.
  * <p>
- * Ces trois écrans n'exposent pas de formulaire d'écriture : ils se contentent de
+ * Ces deux écrans n'exposent pas de formulaire d'écriture : ils se contentent de
  * mettre à disposition des listes que les gabarits parcourent avec {@code th:each}
- * (contrats récents, dossiers des locataires, sous-compteurs).
+ * (contrats récents, dossiers des locataires).
+ * <p>
+ * Le calculateur JIRAMA, qui saisit et écrit, est confié à son propre
+ * contrôleur ({@link JiramaController}).
  */
 @Controller
 public class PageController {
@@ -148,64 +151,6 @@ public class PageController {
         model.addAttribute("nbDossiersComplets", complets);
         model.addAttribute("nbPiecesManquantes", dossiers.size() - complets);
         return "documents/documents";
-    }
-
-    // ==================================================================
-    // Calculateur JIRAMA
-    // ==================================================================
-
-    @GetMapping("/jirama")
-    public String calculateurJirama(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                                    @RequestParam(name = "logementId", required = false) Integer logementId,
-                                    Model model) {
-        model.addAttribute("parc", List.of());
-        model.addAttribute("compteurPrincipal", null);
-        model.addAttribute("lignesCompteurs", List.of());
-        model.addAttribute("repartitionRequise", false);
-
-        Utilisateur bailleur = bailleurInterne(bailleurId, model);
-        if (bailleur == null) {
-            return "jirama/jirama";
-        }
-
-        List<Logement> parcBailleur =
-                logements.findByProprietaireIdOrderByVilleAscQuartierFokontanyAsc(bailleur.getId());
-        // Les vues ne manipulent jamais l'entité Logement : son association vers
-        // le propriétaire est paresseuse, donc inaccessible au rendu Thymeleaf
-        // (spring.jpa.open-in-view=false). On projette donc en LigneCompteur.
-        List<LigneCompteur> parc = parcBailleur.stream()
-                .map(logement -> new LigneCompteur(logement, ""))
-                .toList();
-
-        // Compteur affiché par défaut : celui demandé, sinon le premier du parc.
-        Logement retenu = null;
-        if (logementId != null) {
-            retenu = parcBailleur.stream()
-                    .filter(l -> l.getId().equals(logementId))
-                    .findFirst()
-                    .orElse(null);
-        }
-        if (retenu == null && !parcBailleur.isEmpty()) {
-            retenu = parcBailleur.get(0);
-        }
-        LigneCompteur compteurPrincipal = retenu == null ? null : new LigneCompteur(retenu, "");
-
-        // Un sous-compteur n'a de sens que pour un bail en cours : c'est le locataire
-        // occupant qui fournit les relevés à l'agent JIRAMA.
-        List<LigneCompteur> lignes = contrats.findContratsActifsDuBailleur(bailleur.getId())
-                .stream()
-                .map(contrat -> new LigneCompteur(
-                        contrat.getLogement(),
-                        contrat.getLocataire() == null ? "" : contrat.getLocataire().getNomComplet()))
-                .toList();
-
-        model.addAttribute("parc", parc);
-        model.addAttribute("compteurPrincipal", compteurPrincipal);
-        model.addAttribute("lignesCompteurs", lignes);
-        model.addAttribute("repartitionRequise", retenu != null
-                && retenu.getJiramaTypeGestion() != null
-                && retenu.getJiramaTypeGestion().necessiteRepartition());
-        return "jirama/jirama";
     }
 
     // ==================================================================

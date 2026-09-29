@@ -11,11 +11,11 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import mg.bailtech.web.validation.CinNational;
 
 /**
  * Entité {@code utilisateur} — données d'identité d'une personne physique.
@@ -48,7 +48,7 @@ public class Utilisateur {
     private String prenom;
 
     @NotBlank(message = "{utilisateur.cinNumero.notBlank}")
-    @Pattern(regexp = "\\d{12}", message = "{utilisateur.cinNumero.format}")
+    @CinNational
     @Size(max = CIN_LONGUEUR, message = "{utilisateur.cinNumero.format}")
     @Column(name = "cin_numero", nullable = false, unique = true, length = CIN_LONGUEUR)
     private String cinNumero;

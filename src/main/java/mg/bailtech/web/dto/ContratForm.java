@@ -7,10 +7,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import mg.bailtech.web.validation.CinNational;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
@@ -51,7 +51,12 @@ public class ContratForm {
     @Size(max = 100, message = "{utilisateur.prenom.taille}")
     private String prenom;
 
-    @Pattern(regexp = "\\d{12}", message = "{utilisateur.cinNumero.format}")
+    /**
+     * CIN du locataire saisi. Elle reste facultative ici : le générateur permet
+     * de reprendre un locataire déjà enregistré sans ressaisir son identité.
+     * Dès qu'elle est renseignée, {@link CinNational} impose les 12 chiffres.
+     */
+    @CinNational
     private String cinNumero;
 
     /** Rendu et lu au format ISO par les {@code <input type="date">} du formulaire. */

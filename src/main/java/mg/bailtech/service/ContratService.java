@@ -5,10 +5,10 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import mg.bailtech.model.ContratDeBail;
 import mg.bailtech.model.Logement;
+import mg.bailtech.model.PaiementLoyer;
 import mg.bailtech.model.StatutContrat;
 import mg.bailtech.model.Utilisateur;
 import mg.bailtech.repository.ContratDeBailRepository;
@@ -16,6 +16,9 @@ import mg.bailtech.repository.LogementRepository;
 import mg.bailtech.repository.UtilisateurRepository;
 import mg.bailtech.web.dto.ContratForm;
 import mg.bailtech.web.dto.Format;
+import mg.bailtech.web.validation.CinNationalValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,13 +38,21 @@ public class ContratService {
     private final ContratDeBailRepository contrats;
     private final LogementRepository logements;
     private final UtilisateurRepository utilisateurs;
+    private final EcheanceService echeanceService;
+    private final AuthentificationService authentificationService;
+
+    private static final Logger LOG = LoggerFactory.getLogger(ContratService.class);
 
     public ContratService(ContratDeBailRepository contrats,
                           LogementRepository logements,
-                          UtilisateurRepository utilisateurs) {
+                          UtilisateurRepository utilisateurs,
+                          EcheanceService echeanceService,
+                          AuthentificationService authentificationService) {
         this.contrats = contrats;
         this.logements = logements;
         this.utilisateurs = utilisateurs;
+        this.echeanceService = echeanceService;
+        this.authentificationService = authentificationService;
     }
 
     // ==================================================================
@@ -238,10 +249,83 @@ public class ContratService {
     }
 
     /**
+     * Contrôle explicite de la cohérence des dates, appelé par le contrôleur avant
+     * l'enregistrement afin de rattacher l'erreur au bon champ du formulaire.
+     *
+     * @throws RegleMetierException sur {@code dateFin} si la fin ne suit pas le début
+     */
+    public void verifierCoherenceDates(LocalDate debut, LocalDate fin) {
+        if (debut == null || fin == null) {
+            return;
+        }
+        if (!fin.isAfter(debut)) {
+            throw new RegleMetierException("dateFin", "contrat.dates.coherence",
+                    "La date de fin (" + fin + ") doit être postérieure à la date de début (" + debut + ").");
+        }
+        if (fin.isAfter(debut.plusYears(50))) {
+            throw new RegleMetierException("dateFin", "contrat.dates.duree",
+                    "Un bail ne peut pas excéder 50 ans.");
+        }
+    }
+
+    /**
+     * Fait passer le contrat en {@link StatutContrat#EN_COURS} et déclenche la
+     * génération de ses échéances mensuelles.
+     * <p>
+     * C'est l'instant où la location devient effective : l'index unique partiel
+     * {@code uq_un_seul_contrat_actif_par_logement} s'applique à partir de cette
+     * transition, elle est donc refusée si un autre bail du même logement est
+     * déjà en cours.
+     *
+     * @return le contrat activé, échéances déjà enregistrées
+     * @throws RegleMetierException si le bail est déjà actif ou le logement déjà loué
+     */
+    @Transactional
+    public ContratDeBail activer(Integer contratId, Utilisateur bailleur) {
+        ContratDeBail contrat = contrats.findById(contratId)
+                .orElseThrow(() -> new RegleMetierException(null, "contrat.introuvable",
+                        "Le contrat n° " + contratId + " est introuvable."));
+
+        if (contrat.getLogement() == null || contrat.getLogement().getProprietaire() == null
+                || !contrat.getLogement().getProprietaire().getId().equals(bailleur.getId())) {
+            throw new RegleMetierException(null, "contrat.autorisation",
+                    "Ce contrat n'appartient pas à votre parc immobilier.");
+        }
+        if (contrat.getStatutActuel() != null && contrat.getStatutActuel().isLocationActive()) {
+            throw new RegleMetierException(null, "contrat.deja.actif",
+                    "Le contrat n° " + contratId + " est déjà en cours.");
+        }
+
+        // Index partiel : un seul contrat EN_COURS par logement.
+        Optional<ContratDeBail> autre = contrats.findContratActifParLogement(contrat.getLogement().getId())
+                .filter(c -> !c.getId().equals(contratId));
+        if (autre.isPresent()) {
+            throw new RegleMetierException(null, "contrat.logement.dejaLoue",
+                    "Le contrat n° " + autre.get().getId() + " occupe déjà ce logement.");
+        }
+
+        contrat.setStatutActuel(StatutContrat.EN_COURS);
+        ContratDeBail enregistre = contrats.save(contrat);
+
+        List<PaiementLoyer> echeances = echeanceService.genererEcheances(enregistre);
+        LOG.info("Contrat n° {} activé : {} échéance(s) générée(s).", enregistre.getId(), echeances.size());
+        return enregistre;
+    }
+
+    /**
      * Retrouve le locataire par sa CIN (recherche d'identité du cahier des charges)
      * et, à défaut, crée sa fiche.
      */
     private Utilisateur rechercherOuCreerLocataire(ContratForm form) {
+        // Défense en profondeur : le formulaire est validé par @CinNational, mais
+        // une saisie par un autre chemin (import, script) ne passerait pas par
+        // cette contrainte.
+        if (form.getCinNumero() != null && !form.getCinNumero().isBlank()
+                && !CinNationalValidator.estFormatValide(form.getCinNumero())) {
+            throw new RegleMetierException("cinNumero", "utilisateur.cinNumero.format",
+                    "Le numéro de CIN doit contenir exactement 12 chiffres.");
+        }
+
         Optional<Utilisateur> dejaEnBase = utilisateurs.findByCinNumeroNormalise(form.getCinNumero());
         if (dejaEnBase.isPresent()) {
             // La CIN est unique en base : on réutilise la fiche existante
@@ -259,10 +343,11 @@ public class ContratService {
         nouveau.setAdresseActuelle(form.getAdresseActuelle());
         nouveau.setTelephone(form.getTelephone());
         nouveau.setEmail(form.getEmail());
-        // Aucun mot de passe n'est saisissable depuis l'assistant : on pose une
-        // empreinte non devinable. Le module de sécurité (BCrypt) remplacera ce
-        // placeholder à l'ouverture d'un compte locataire.
-        nouveau.setMotDePasse("{compte-sans-authentification}" + UUID.randomUUID());
+        // L'assistant de contrat enregistre un locataire, il ne lui ouvre pas
+        // d'accès : on ne peut pas lui demander de choisir un mot de passe. On
+        // pose donc l'empreinte BCrypt d'un secret aléatoire — elle n'ouvre
+        // aucun accès, mais ce n'est plus une chaîne en clair devinable en base.
+        nouveau.setMotDePasse(authentificationService.hacherMotDePasseAleatoire());
         return utilisateurs.save(nouveau);
     }
 
