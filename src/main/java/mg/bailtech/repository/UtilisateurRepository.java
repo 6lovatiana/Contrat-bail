@@ -62,6 +62,39 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Intege
     @Query("select distinct c.locataire from ContratDeBail c order by c.locataire.nom, c.locataire.prenom")
     List<Utilisateur> findLocataires();
 
+    /**
+     * Locataires rattachés à un bien d'un bailleur donné.
+     *
+     * <p>À distinguer de {@link #findLocataires()}, qui renvoie <em>tous</em> les
+     * preneurs de la base. L'écran « coffre-fort » affiche CIN, téléphone et
+     * email : il n'a pas à exposer les coordonnées de locataires d'autres
+     * propriétaires. Le rattachement passe par le propriétaire du logement, et
+     * non par un contrat actif, pour qu'un locataire dont le bail vient d'être
+     * résilié reste visible le temps de régler ses restes dus.
+     */
+    @Query("select distinct c.locataire from ContratDeBail c "
+            + "where c.logement.proprietaire.id = :proprietaireId "
+            + "order by c.locataire.nom, c.locataire.prenom")
+    List<Utilisateur> findLocatairesDuParc(@Param("proprietaireId") Integer proprietaireId);
+
+    /** Idem, restreint aux_coordonnées saisies dans la barre de recherche. */
+    @Query("select distinct c.locataire from ContratDeBail c "
+            + "where c.logement.proprietaire.id = :proprietaireId and ("
+            + "lower(c.locataire.nom) like lower(concat('%', :fragment, '%')) "
+            + "or lower(coalesce(c.locataire.prenom, '')) like lower(concat('%', :fragment, '%')) "
+            + "or c.locataire.cinNumero like concat('%', :fragment, '%') "
+            + "or lower(c.locataire.email) like lower(concat('%', :fragment, '%')) "
+            + "or lower(c.locataire.telephone) like lower(concat('%', :fragment, '%')) "
+            + "or lower(c.logement.adresseLot) like lower(concat('%', :fragment, '%'))) "
+            + "order by c.locataire.nom, c.locataire.prenom")
+    List<Utilisateur> rechercherLocatairesDuParc(@Param("proprietaireId") Integer proprietaireId,
+                                                @Param("fragment") String fragment);
+
+    /** Un utilisateur possède-t-il au moins un bien ? Détermine le rôle métier. */
+    @Query("select case when count(l) > 0 then true else false end from Logement l "
+            + "where l.proprietaire.id = :proprietaireId")
+    boolean estProprietaire(@Param("proprietaireId") Integer proprietaireId);
+
     Utilisateur findFirstByOrderByIdAsc();
 
     // ------------------------------------------------------------------

@@ -1,5 +1,6 @@
 mg\bailtech\service\JiramaService$ResultatJirama.class
 mg\bailtech\service\ContratService.class
+mg\bailtech\web\AccesRefuseException$Gestionnaire.class
 mg\bailtech\repository\UtilisateurRepository.class
 mg\bailtech\service\MoteurRepartitionJirama$ConsommationOccupant.class
 mg\bailtech\service\EcheanceService.class
@@ -10,7 +11,9 @@ mg\bailtech\web\validation\CinNationalValidator.class
 mg\bailtech\service\MoteurRepartitionJirama$LigneRepartition.class
 mg\bailtech\repository\PaiementLoyerRepository.class
 mg\bailtech\service\AuthentificationService.class
+mg\bailtech\web\DonneesCommunes.class
 mg\bailtech\service\StockageSecuriseService.class
+mg\bailtech\service\BailleurCourantService.class
 mg\bailtech\web\dto\LigneDossier.class
 mg\bailtech\service\ConversionMontant.class
 mg\bailtech\model\Logement.class
@@ -30,6 +33,7 @@ mg\bailtech\model\StatutContrat.class
 mg\bailtech\service\JiramaService$Ecriture.class
 mg\bailtech\service\MoteurRepartitionJirama.class
 mg\bailtech\config\DonneesDemo.class
+mg\bailtech\service\BailleurCourantService$UtilisateurIntrouvableException.class
 mg\bailtech\web\validation\CinNational.class
 mg\bailtech\repository\ContratDeBailRepository.class
 mg\bailtech\web\dto\LigneEcheancier.class
@@ -42,10 +46,12 @@ mg\bailtech\web\VisionneuseController.class
 mg\bailtech\web\dto\SyntheseBailleur.class
 mg\bailtech\repository\LogementRepository.class
 mg\bailtech\ContratBailApplication.class
+mg\bailtech\web\AccesRefuseException.class
 mg\bailtech\web\dto\ReleveSousCompteur.class
 mg\bailtech\service\MoteurRepartitionJirama$ModeEcart.class
 mg\bailtech\web\dto\ContratPdfModel$LigneEcheance.class
 mg\bailtech\web\dto\Format.class
 mg\bailtech\model\StatutPaiement.class
+mg\bailtech\web\ConnexionController.class
 mg\bailtech\web\JiramaController.class
 mg\bailtech\service\JiramaService$LigneCharge.class

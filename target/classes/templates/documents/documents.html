@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: entete('Coffre-fort numérique')}">
+    <meta charset="UTF-8">
+    <title>Bailtech</title>
+</head>
+
+<body class="bg-slate-50">
+
+<div class="flex min-h-screen w-full flex-col lg:flex-row">
+
+    <div th:replace="~{fragments/layout :: menu('locataires')}"></div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <header th:replace="~{fragments/layout :: en-tete('Coffre-fort numérique')}"></header>
+
+        <div class="flex flex-1 flex-col gap-8 self-stretch p-4 sm:p-8">
+
+            <div th:if="${messageVide}" role="status"
+                 class="flex flex-col gap-1 self-stretch rounded-xl border border-solid border-amber-200 bg-amber-50 px-4 py-3">
+                <span class="text-sm font-semibold text-amber-900" th:text="${messageVide}">Aucun bailleur</span>
+            </div>
+
+            <!-- ================= Indicateurs ================= -->
+            <div class="flex flex-col self-stretch gap-6 sm:grid sm:grid-cols-2 xl:grid-cols-4">
+
+                <div class="flex items-center gap-4 flex-1 rounded-2xl border border-solid border-slate-200 bg-white p-5">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                        <img th:src="@{/icons/contracter.png}" alt="" class="h-5 w-5">
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Dossiers en cours de bail</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-2xl font-bold text-slate-900" th:text="${nbDossiersComplets}">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 flex-1 rounded-2xl border border-solid border-slate-200 bg-white p-5">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50">
+                        <img th:src="@{/icons/information.png}" alt="" class="h-5 w-5">
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Pièces manquantes</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-2xl font-bold text-slate-900" th:text="${nbPiecesManquantes}">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 flex-1 rounded-2xl border border-solid border-slate-200 bg-white p-5">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
+                        <img th:src="@{/icons/groupe-d'utilisateurs.png}" alt="" class="h-5 w-5">
+                        </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Locataires enregistrés</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-2xl font-bold text-slate-900" th:text="${nbDossiers}">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 flex-1 rounded-2xl border border-solid border-slate-200 bg-white p-5">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900">
+                        <img th:src="@{/icons/coffre-fort.png}" alt="" class="h-5 w-5">
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Dernier audit</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-slate-900">À la connexion</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col self-stretch gap-6 xl:flex-row">
+
+                <!-- ================= Liste des dossiers ================= -->
+                <div class="flex flex-1 flex-col overflow-hidden rounded-3xl border border-solid border-slate-200 bg-white">
+
+                    <div class="flex flex-col gap-3 self-stretch border-solid border-slate-100 bg-slate-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-lg font-bold text-slate-900">Gestion des documents locataires</span>
+                        </div>
+                        <form th:action="@{/locataires}" method="get" class="flex flex-col self-stretch">
+                            <div class="flex items-center rounded-xl border border-solid border-slate-200 bg-white px-4 py-2.5">
+                                <input type="search" name="q" th:value="${recherche}" placeholder="Rechercher..."
+                                       class="w-full bg-transparent text-sm font-normal text-slate-800 outline-none placeholder:text-gray-400">
+                            </div>
+                        </form>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(dossiers)}"
+                         class="flex flex-col items-center self-stretch p-12 text-center">
+                        <span class="text-sm font-medium text-slate-500">Aucun locataire enregistré.</span>
+                        <a th:href="@{/contrats/create}" class="mt-2 text-sm font-semibold text-blue-900">Créer un contrat</a>
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(dossiers)}" class="flex flex-col self-stretch">
+                        <div class="overflow-x-auto">
+                            <div class="min-w-[860px]">
+                                <div class="flex self-stretch">
+                                    <div class="flex w-64 flex-col px-6 py-4">
+                                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Locataire et contacts</span>
+                                    </div>
+                                    <div class="flex w-40 flex-col px-6 py-4">
+                                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">N° CIN</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col px-6 py-4">
+                                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Bien occupé</span>
+                                    </div>
+                                    <div class="flex w-40 flex-col px-6 py-4">
+                                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Statut du dossier</span>
+                                    </div>
+                                    <div class="flex w-32 flex-col items-end px-6 py-4">
+                                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Actions</span>
+                                    </div>
+                                </div>
+
+                                <div th:each="dossier : ${dossiers}"
+                                     class="flex items-center self-stretch gap-6 border-t border-solid border-slate-50 py-4 pl-6">
+                                    <div class="flex w-64 items-center gap-3">
+                                        <div class="flex h-10 w-10 shrink-0 flex-col justify-center items-center rounded-full bg-slate-100">
+                                            <span class="text-xs font-bold text-slate-600" th:text="${dossier.initiales}">SR</span>
+                                        </div>
+                                        <div class="flex flex-col min-w-0">
+                                            <div class="flex flex-col self-stretch">
+                                                <span class="text-sm font-bold text-slate-900" th:text="${dossier.nom}">Nom</span>
+                                            </div>
+                                            <div class="flex flex-col self-stretch">
+                                                <span class="truncate text-xs font-normal text-slate-500"
+                                                      th:text="|${dossier.telephone} — ${dossier.email}|">
+                                                    +261 32 00 000 00 — email@exemple.mg</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex w-40 flex-col px-6 py-2">
+                                        <div class="flex h-8 w-32 items-center justify-center rounded bg-slate-100">
+                                            <span class="text-xs font-normal text-slate-600" th:text="${dossier.cin}">101 211 •••</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-1 flex-col px-6 py-2">
+                                        <span class="text-sm font-normal text-slate-600" th:text="${dossier.bien}">Appartement T3</span>
+                                    </div>
+                                    <div class="flex w-40 flex-col px-6 py-2">
+                                        <div class="flex self-start rounded-full px-3 py-[3.5px]"
+                                             th:classappend="${dossier.statutCss}">
+                                            <span class="text-xs font-semibold" th:text="${dossier.statut}">Bail en cours</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex w-32 flex-col items-end px-6 py-2">
+                                        <a th:href="@{/contrats/create}"
+                                           class="flex items-center justify-center gap-1 rounded-lg px-3 py-1.5">
+                                            <span class="text-xs font-bold text-center text-blue-900">Créer un bail</span>
+                                            <img th:src="@{/icons/send.png}" alt="" class="h-3 w-3">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 self-stretch border-t border-solid border-slate-100 bg-slate-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Bail en cours</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Pièces manquantes</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-slate-500"
+                                  th:text="|Affichage de ${nbDossiers} locataire(s)|">Affichage</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= Colonne latérale ================= -->
+                <div class="flex flex-1 flex-col gap-6">
+
+                    <!--
+                        Dépôt de pièce.
+
+                        Non fonctionnel en v1 : il n'existe aucune table de
+                        pièces justificatives dans le modèle. L'export
+                        présentait trois listes de formats dont rien ne
+                        clochait ; elles sont remplacées par un renvoi honnête
+                        vers ce qui est réellement disponible, plutôt que par
+                        un faux formulaire qui promettrait un dépôt.
+                    -->
+                    <div class="flex flex-col items-center self-stretch rounded-3xl border-2 border-dashed border-slate-200 bg-white p-8 text-center">
+                        <div class="flex h-20 w-16 flex-col pb-4">
+                            <div class="flex w-16 h-16 items-center justify-center rounded-2xl bg-blue-50">
+                                <img th:src="@{/icons/coffre-fort.png}" alt="" class="h-6 w-6">
+                            </div>
+                        </div>
+                        <div class="flex flex-col pb-2">
+                            <span class="text-base font-bold text-center text-slate-900">Dépôt de pièce</span>
+                        </div>
+                        <div class="flex flex-col pb-2">
+                            <span class="text-xs font-normal text-center text-slate-500">
+                                Le coffre-fort de fichiers chiffrés arrive dans la prochaine version.
+                                Les fiches d'identité affichées proviennent de la base.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!--
+                        Garantie de chiffrement.
+
+                        Le texte est en blanc sur un fond slate-900 : le contraste
+                        est bon ici. L'export y superposait un carré blanc de
+                        128x128 et une icône sans contenu, qui masquaient le
+                        titre ; seul le texte est conservé.
+                    -->
+                    <div class="flex flex-col self-stretch rounded-3xl bg-slate-900 p-6">
+                        <div class="flex flex-col gap-2 self-stretch">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-300">Garantie Bailtech</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-lg font-bold text-white">Chiffrement de bout en bout</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-normal leading-relaxed text-slate-300">
+                                    Chaque document déposé est chiffré en AES-256-GCM avec une clé
+                                    propre au dossier. La clé de déchiffrement ne quitte jamais
+                                    votre espace.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-4 self-stretch rounded-3xl border border-solid border-slate-200 bg-white p-6">
+                        <div class="flex justify-between items-center self-stretch">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-slate-900">Activités récentes</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4 self-stretch">
+
+                            <div th:if="${#lists.isEmpty(activites)}" class="flex flex-col">
+                                <span class="text-xs font-medium text-slate-500">Aucune activité à afficher.</span>
+                            </div>
+
+                            <div th:each="dossier : ${activites}" class="flex gap-3 self-stretch">
+                                <div class="w-2 shrink-0 rounded-full"
+                                     th:classappend="${dossier.dossierComplet} ? 'bg-emerald-500' : 'bg-amber-500'"></div>
+                                <div class="flex flex-col min-w-0">
+                                    <div class="flex flex-col self-stretch">
+                                        <!--
+                                            Elvis : le préfixe dépend de l'état du
+                                            dossier, seul le nom est commun.
+                                        -->
+                                        <span class="text-xs font-medium text-slate-900"
+                                              th:text="${dossier.dossierComplet}
+                                                       ? |Dossier en cours — ${dossier.nom}|
+                                                       : |Pièces à compléter — ${dossier.nom}|">
+                                            Consultation CIN</span>
+                                    </div>
+                                    <div class="flex flex-col self-stretch">
+                                        <span class="truncate text-[10px] font-normal text-slate-500"
+                                              th:text="${dossier.telephone}">Téléphone</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

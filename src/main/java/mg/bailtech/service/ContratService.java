@@ -56,35 +56,18 @@ public class ContratService {
     }
 
     // ==================================================================
-    // Résolution du bailleur courant
+    // Alimentation du formulaire
     // ==================================================================
 
     /**
-     * Détermine le bailleur « connecté ».
-     * <p>
-     * Le module d'authentification (Tohavina) n'étant pas encore en place, on
-     * accepte un identifiant transmis par l'URL et, à défaut, on retient le
-     * premier propriétaire enregistré. Cette méthode sera remplacée par la lecture
-     * de la session dès l'introduction de Spring Security.
+     * Le bailleur n'est plus résolu ici.
+     *
+     * <p>Cette classe ne connaît plus d'identité d'appelant : le bailleur vient
+     * de la session ({@link BailleurCourantService}). Elle reçoit donc en
+     * paramètre un objet déjà authentifié, dont l'identifiant ne peut pas avoir
+     * été choisi par le client. Toute méthode exposée reçoit ce paramètre
+     * plutôt que de le redécouvrir d'elle-même.
      */
-    @Transactional(readOnly = true)
-    public Utilisateur utilisateurCourant(Integer bailleurId) {
-        if (bailleurId != null) {
-            Optional<Utilisateur> demande = utilisateurs.findById(bailleurId);
-            if (demande.isPresent()) {
-                return demande.get();
-            }
-        }
-        return utilisateurs.findBailleurs().stream()
-                .findFirst()
-                .or(() -> Optional.ofNullable(utilisateurs.findFirstByOrderByIdAsc()))
-                .orElseThrow(() -> new RegleMetierException(null, "bailleur.absent",
-                        "Aucun bailleur n'est enregistré : créez d'abord un propriétaire et un logement."));
-    }
-
-    // ==================================================================
-    // Alimentation du formulaire
-    // ==================================================================
 
     /** Biens du bailleur sans contrat en cours : seules valeurs de la liste déroulante. */
     @Transactional(readOnly = true)

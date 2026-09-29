@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: entete('Contrat')}">
+    <meta charset="UTF-8">
+    <title>Bailtech</title>
+</head>
+
+<body class="bg-slate-50">
+
+<div class="flex min-h-screen w-full flex-col lg:flex-row">
+
+    <div th:replace="~{fragments/layout :: menu('visionneuse')}"></div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <header th:replace="~{fragments/layout :: en-tete('Fiche du contrat')}"></header>
+
+        <div class="flex flex-1 flex-col gap-6 self-stretch p-4 sm:p-8">
+
+            <div th:if="${messageConfirmation}" role="status"
+                 class="flex items-center gap-2 self-stretch rounded-xl border border-solid border-emerald-200 bg-emerald-50 px-4 py-3">
+                <span class="text-sm font-semibold text-emerald-800" th:text="${messageConfirmation}">Contrat signé</span>
+            </div>
+            <div th:if="${messageErreur}" role="alert"
+                 class="flex items-center gap-2 self-stretch rounded-xl border border-solid border-red-200 bg-red-50 px-4 py-3">
+                <span class="text-sm font-semibold text-red-700" th:text="${messageErreur}">Action refusée</span>
+            </div>
+
+            <div class="flex flex-col gap-4 self-stretch sm:flex-row sm:items-end sm:justify-between">
+                <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                    <div class="flex flex-col">
+                        <div class="flex flex-col self-stretch">
+                            <span class="text-2xl font-bold text-gray-900"
+                                  th:text="|Contrat n° ${contratId}|">Contrat n° 1</span>
+                        </div>
+                        <div class="flex flex-col self-stretch">
+                            <span class="font-normal text-base text-gray-500"
+                                  th:text="|(${#lists.size(echeances)} échéance(s))|">(0 échéance(s))</span>
+                        </div>
+                    </div>
+                    <div class="flex self-start rounded-full px-3 py-[3.5px]" th:classappend="${statutCss}">
+                        <span class="text-xs font-semibold" th:text="${statut}">En attente de signature</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <a th:href="@{/contrats/{id}/pdf(id=${contratId})}" target="_blank" rel="noopener"
+                       class="flex items-center gap-2 rounded-xl border border-solid border-gray-200 bg-white px-5 py-2.5">
+                        <img th:src="@{/icons/export-pdf.png}" alt="" class="h-4 w-4">
+                        <span class="text-base font-semibold text-center text-blue-900">Voir le PDF</span>
+                    </a>
+                    <a th:href="@{/contrats/{id}/pdf/telecharger(id=${contratId})}"
+                       class="flex items-center gap-2 rounded-xl bg-blue-900 px-5 py-2.5">
+                        <img th:src="@{/icons/export-pdf.png}" alt="" class="h-4 w-4 invert opacity-90">
+                        <span class="text-base font-semibold text-center text-white">Télécharger le PDF</span>
+                    </a>
+                </div>
+            </div>
+
+            <!--
+                Signature.
+
+                POST avec jeton CSRF : cette action modifie l'état d'un contrat
+                (passage en EN_COURS et génération des échéances). Un lien GET
+                suffirait à la déclencher depuis une page tierce, c'est
+                précisément ce que la protection CSRF empêche.
+            -->
+            <div th:if="${activable}" class="flex flex-col gap-3 self-stretch rounded-xl border border-solid border-amber-200 bg-amber-50 px-4 py-3">
+                <span class="text-sm font-semibold text-amber-900">Contrat en attente de signature</span>
+                <span class="text-xs text-amber-800">
+                    La signature déclenche le passage au statut « En cours » et la génération automatique
+                    des échéances mensuelles de loyer. Un logement ne peut pas accueillir deux baux en cours.
+                </span>
+                <form th:action="@{/contrats/{id}/signature(id=${contratId})}" method="post" class="flex">
+                    <button type="submit" class="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-[11px]">
+                        <img th:src="@{/icons/send.png}" alt="" class="h-4 w-4">
+                        <span class="text-base font-semibold text-center text-white">Signer et activer le bail</span>
+                    </button>
+                </form>
+            </div>
+
+            <div th:if="${#lists.isEmpty(echeances)}"
+                 class="flex flex-col items-center self-stretch rounded-2xl border border-solid border-slate-200 bg-white p-12 text-center">
+                <span class="text-sm font-medium text-slate-500">Aucune échéance générée pour l'instant.</span>
+                <span class="mt-1 text-xs font-normal text-slate-400">
+                    Les échéances apparaissent lorsque le bail passe au statut « En cours ».
+                </span>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(echeances)}"
+                 class="flex flex-col self-stretch overflow-hidden rounded-2xl border border-solid border-slate-200 bg-white">
+                <div class="overflow-x-auto">
+                    <div class="min-w-[900px]">
+
+                        <div class="flex items-center self-stretch border-b border-solid border-slate-100 bg-slate-50 px-6 py-3">
+                            <div class="flex w-32 flex-col shrink-0">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Période</span>
+                            </div>
+                            <div class="flex w-40 flex-col">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Montant dû (MGA)</span>
+                            </div>
+                            <div class="flex w-40 flex-col">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Montant versé (MGA)</span>
+                            </div>
+                            <div class="flex w-40 flex-col">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Reste dû (MGA)</span>
+                            </div>
+                            <div class="flex w-32 flex-col">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Réglé le</span>
+                            </div>
+                            <div class="flex flex-1 flex-col">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Situation</span>
+                            </div>
+                        </div>
+
+                        <div th:each="echeance : ${echeances}"
+                             class="flex items-center self-stretch border-t border-solid border-slate-50 px-6 py-4">
+                            <div class="flex w-32 flex-col shrink-0">
+                                <span class="text-sm font-semibold text-slate-900" th:text="${echeance.periode}">01/2026</span>
+                            </div>
+                            <div class="flex w-40 flex-col">
+                                <span class="text-sm font-normal text-slate-700" th:text="${echeance.montantDu}">0,00</span>
+                            </div>
+                            <div class="flex w-40 flex-col">
+                                <span class="text-sm font-normal text-slate-700" th:text="${echeance.montantVerse}">0,00</span>
+                            </div>
+                            <div class="flex w-40 flex-col">
+                                <span class="text-sm font-bold text-slate-900" th:text="${echeance.resteDu}">0,00</span>
+                            </div>
+                            <div class="flex w-32 flex-col">
+                                <span class="text-sm font-normal text-slate-500" th:text="${echeance.datePaiement}">—</span>
+                            </div>
+                            <div class="flex flex-1 flex-col">
+                                <div class="flex self-start rounded-full px-3 py-[3.5px]"
+                                     th:classappend="${echeance.statutCss}">
+                                    <span class="text-xs font-semibold" th:text="${echeance.statut}">À payer</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <a th:href="@{/contrats}"
+               class="flex w-fit items-center rounded-xl border border-solid border-slate-200 bg-white px-5 py-2.5">
+                <span class="text-sm font-semibold text-blue-900">Retour à la liste des contrats</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

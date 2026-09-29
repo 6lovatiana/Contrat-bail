@@ -30,13 +30,13 @@
             <artifactId>flying-saucer-pdf</artifactId>
             <version>9.4.0</version>
         </dependency>
-        <!-- Hachage des mots de passe (BCrypt, come l'attend le schema
-             Conception_base.md). Module isole : il n-active aucune
-             auto-configuration Spring Security, le depot des identites et la
-             gestion de session restant a brancher. -->
+        <!-- Securite web : authentification par formulaire (CIN + mot de passe),
+             session serveur, regles d'acces par URL et protection CSRF.
+             L'encodeur BCrypt expose par ConfigurationSecurite est reutilise
+             par DaoAuthenticationProvider : un seul lieu de hachage. -->
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
     </dependencies>

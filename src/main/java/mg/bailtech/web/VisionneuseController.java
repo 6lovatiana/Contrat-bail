@@ -6,6 +6,7 @@ import mg.bailtech.model.ContratDeBail;
 import mg.bailtech.model.Utilisateur;
 import mg.bailtech.repository.ContratDeBailRepository;
 import mg.bailtech.repository.PaiementLoyerRepository;
+import mg.bailtech.service.BailleurCourantService;
 import mg.bailtech.service.ContratPdfService;
 import mg.bailtech.service.ContratService;
 import mg.bailtech.service.RegleMetierException;
@@ -20,7 +21,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -36,6 +36,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  *   <li>{@code POST /contrats/{id}/signature} : le bail est signé, il passe en
  *       {@code EN_COURS} et ses échéances mensuelles sont générées.</li>
  * </ul>
+ *
+ * <h2>Contrôle de propriété</h2>
+ * Aucun identifiant de contrat n'est lu dans l'URL sans être confronté au
+ * bailleur de la session. Le paramètre {@code {id}} est choisi par le client :
+ * sans la vérification faite par {@link #chargerContrat}, changer le numéro
+ * dans la barre d'adresse suffirait à lire — et à télécharger — le contrat d'un
+ * autre propriétaire. La vérification est faite <em>avant</em> toute lecture de
+ * l'échéancier, et l'échec est tracé : une série de refus sur des identifiants
+ * strangers est le signe d'une tentative d'énumération.
  */
 @Controller
 public class VisionneuseController {
@@ -43,21 +52,25 @@ public class VisionneuseController {
     private static final Logger LOG = LoggerFactory.getLogger(VisionneuseController.class);
 
     private static final String VUE_LISTE = "contrat/contrats";
+
     private static final String VUE_FICHE = "contrat/contrat-fiche";
 
     private final ContratDeBailRepository contrats;
     private final PaiementLoyerRepository paiements;
     private final ContratService contratService;
     private final ContratPdfService contratPdfService;
+    private final BailleurCourantService bailleurCourant;
 
     public VisionneuseController(ContratDeBailRepository contrats,
                                  PaiementLoyerRepository paiements,
                                  ContratService contratService,
-                                 ContratPdfService contratPdfService) {
+                                 ContratPdfService contratPdfService,
+                                 BailleurCourantService bailleurCourant) {
         this.contrats = contrats;
         this.paiements = paiements;
         this.contratService = contratService;
         this.contratPdfService = contratPdfService;
+        this.bailleurCourant = bailleurCourant;
     }
 
     // ==================================================================
@@ -65,12 +78,9 @@ public class VisionneuseController {
     // ==================================================================
 
     @GetMapping("/contrats")
-    public String lister(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                         Model model) {
-        Utilisateur bailleur = bailleur(bailleurId, model);
-        if (bailleur == null) {
-            return VUE_LISTE;
-        }
+    public String lister(Model model) {
+        Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
+        model.addAttribute("bailleur", bailleur);
         List<LigneContrat> lignes = contrats.findContratsDuBailleur(bailleur.getId())
                 .stream()
                 .map(LigneContrat::new)
@@ -86,18 +96,13 @@ public class VisionneuseController {
 
     @GetMapping("/contrats/{id}")
     public String fiche(@PathVariable("id") Integer id,
-                        @RequestParam(name = "bailleurId", required = false) Integer bailleurId,
                         Model model,
                         RedirectAttributes redirectAttributes) {
-        Utilisateur bailleur = bailleur(bailleurId, model);
-        ContratDeBail contrat = contrats.findById(id).orElse(null);
+        Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
+        model.addAttribute("bailleur", bailleur);
+
+        ContratDeBail contrat = chargerContrat(bailleur, id, redirectAttributes);
         if (contrat == null) {
-            redirectAttributes.addFlashAttribute("messageErreur", "Le contrat n° " + id + " est introuvable.");
-            return "redirect:/contrats";
-        }
-        if (bailleur != null && !appartientA(contrat, bailleur)) {
-            redirectAttributes.addFlashAttribute("messageErreur",
-                    "Ce contrat n'appartient pas à votre parc immobilier.");
             return "redirect:/contrats";
         }
 
@@ -118,16 +123,32 @@ public class VisionneuseController {
     // PDF
     // ==================================================================
 
-    /** PDF affiché directement dans le navigateur (visionneuse). */
+    /**
+     * PDF affiché directement dans le navigateur (visionneuse).
+     *
+     * <p>La propriété est contrôlée avant la génération : le PDF contient les
+     * identités et les montants du bail, il ne doit jamais sortir du parc de
+     * celui qui le demande.
+     */
     @GetMapping("/contrats/{id}/pdf")
     public ResponseEntity<byte[]> afficherPdf(@PathVariable("id") Integer id) {
-        return ContratController.reponse(contratPdfService.generer(id), false);
+        return ContratController.reponse(genererPdfAutorise(id), false);
     }
 
     /** PDF proposé en pièce jointe. */
     @GetMapping("/contrats/{id}/pdf/telecharger")
     public ResponseEntity<byte[]> telechargerPdf(@PathVariable("id") Integer id) {
-        return ContratController.reponse(contratPdfService.generer(id), true);
+        return ContratController.reponse(genererPdfAutorise(id), true);
+    }
+
+    /** Génère le PDF du contrat, après avoir vérifié qu'il est au bailleur. */
+    private DocumentPdf genererPdfAutorise(Integer id) {
+        Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
+        if (chargerContrat(bailleur, id, null) == null) {
+            // Aucun message à afficher : la réponse est un fichier, pas une page.
+            throw new AccesRefuseException("Le contrat n° " + id + " ne fait pas partie de votre parc.");
+        }
+        return contratPdfService.generer(id);
     }
 
     // ==================================================================
@@ -140,15 +161,15 @@ public class VisionneuseController {
      */
     @PostMapping("/contrats/{id}/signature")
     public String signer(@PathVariable("id") Integer id,
-                         @RequestParam(name = "bailleurId", required = false) Integer bailleurId,
                          RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur bailleur = contratService.utilisateurCourant(bailleurId);
+            Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
             ContratDeBail contrat = contratService.activer(id, bailleur);
             redirectAttributes.addFlashAttribute("messageConfirmation",
                     "Contrat n° " + contrat.getId() + " signé : la location est effective et les échéances "
                             + "mensuelles ont été générées.");
-        } catch (RegleMetierException e) {
+        } catch (BailleurCourantService.UtilisateurIntrouvableException
+                 | RegleMetierException e) {
             LOG.warn("Signature du contrat n° {} refusée : {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("messageErreur", e.getMessage());
         }
@@ -159,15 +180,37 @@ public class VisionneuseController {
     // Outils
     // ==================================================================
 
-    private Utilisateur bailleur(Integer bailleurId, Model model) {
-        try {
-            Utilisateur bailleur = contratService.utilisateurCourant(bailleurId);
-            model.addAttribute("bailleur", bailleur);
-            return bailleur;
-        } catch (RegleMetierException e) {
-            model.addAttribute("bailleur", null);
-            model.addAttribute("messageVide", e.getMessage());
+    /**
+     * Charge un contrat en vérifiant qu'il appartient au bailleur.
+     *
+     * @return le contrat, ou {@code null} s'il est introuvable ou étranger —
+     *         auquel cas un message est ajouté si {@code redirectAttributes}
+     *         est fourni
+     */
+    private ContratDeBail chargerContrat(Utilisateur bailleur, Integer id,
+                                         RedirectAttributes redirectAttributes) {
+        // findByIdAvecProprietaire et non findById : le contrôle d'accès doit
+        // lire le propriétaire du bien, association paresseuse.
+        ContratDeBail contrat = contrats.findByIdAvecProprietaire(id).orElse(null);
+        if (contrat == null) {
+            avertir(redirectAttributes, "Le contrat n° " + id + " est introuvable.", id);
             return null;
+        }
+        if (!appartientA(contrat, bailleur)) {
+            // Le contrat existe mais n'est pas au demandeur : le message reste
+            // identique à celui d'un contrat absent, pour ne pas confirmer
+            // l'existence d'un contrat appartenant à autrui.
+            LOG.warn("Accès refusé au contrat n° {} : il n'appartient pas au bailleur n° {}.",
+                    id, bailleur.getId());
+            avertir(redirectAttributes, "Ce contrat n'appartient pas à votre parc immobilier.", id);
+            return null;
+        }
+        return contrat;
+    }
+
+    private void avertir(RedirectAttributes redirectAttributes, String message, Integer id) {
+        if (redirectAttributes != null) {
+            redirectAttributes.addFlashAttribute("messageErreur", message);
         }
     }
 

@@ -8,7 +8,7 @@ import mg.bailtech.model.Logement;
 import mg.bailtech.model.TypeCompteurJirama;
 import mg.bailtech.model.Utilisateur;
 import mg.bailtech.repository.LogementRepository;
-import mg.bailtech.service.ContratService;
+import mg.bailtech.service.BailleurCourantService;
 import mg.bailtech.service.JiramaService;
 import mg.bailtech.service.JiramaService.ResultatJirama;
 import mg.bailtech.service.MoteurRepartitionJirama.ModeEcart;
@@ -46,6 +46,12 @@ import org.springframework.web.bind.annotation.RequestParam;
  * de vue également) : renvoyer directement la chaîne d'un view name ferait
  * perdre au gabarit le {@link BindingResult}, et donc tous les messages
  * d'erreur saisis champ par champ.
+ *
+ * <h2>Identité et identifiants</h2>
+ * Le bailleur vient de la session. Le {@code logementId} du formulaire, lui,
+ * reste un identifiant choisi par le client : il est recoupé avec le parc du
+ * bailleur avant d'être retenu, sans quoi il suffirait de demander le relevé
+ * du compteur d'un immeuble voisin pour en connaître la configuration.
  */
 @Controller
 public class JiramaController {
@@ -58,14 +64,14 @@ public class JiramaController {
 
     private final LogementRepository logements;
 
-    private final ContratService contratService;
+    private final BailleurCourantService bailleurCourant;
 
     public JiramaController(JiramaService jiramaService,
                             LogementRepository logements,
-                            ContratService contratService) {
+                            BailleurCourantService bailleurCourant) {
         this.jiramaService = jiramaService;
         this.logements = logements;
-        this.contratService = contratService;
+        this.bailleurCourant = bailleurCourant;
     }
 
     // ==================================================================
@@ -73,11 +79,10 @@ public class JiramaController {
     // ==================================================================
 
     @GetMapping("/jirama")
-    public String formulaire(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                             @RequestParam(name = "logementId", required = false) Integer logementId,
+    public String formulaire(@RequestParam(name = "logementId", required = false) Integer logementId,
                              Model model) {
-        Utilisateur bailleur = bailleurOuVide(bailleurId, model);
-        JiramaForm formulaire = jiramaService.preparerFormulaire(bailleur, logementId, null);
+        Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
+        JiramaForm formulaire = jiramaService.preparerFormulaire(bailleur, logementAppartenantAuParc(bailleur, logementId), null);
         return afficher(bailleur, formulaire, null, model);
     }
 
@@ -87,11 +92,10 @@ public class JiramaController {
 
     /** Répartit la facture sans écrire : le bailleur vérifie avant de facturer. */
     @PostMapping("/jirama/calculer")
-    public Object calculer(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                           @Valid @ModelAttribute("formulaireJirama") JiramaForm formulaire,
+    public Object calculer(@Valid @ModelAttribute("formulaireJirama") JiramaForm formulaire,
                            BindingResult erreurs,
                            Model model) {
-        Utilisateur bailleur = bailleurOuVide(bailleurId, model);
+        Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
         if (erreurs.hasErrors()) {
             LOG.info("Calcul JIRAMA refusé : {} erreur(s) de saisie.", erreurs.getErrorCount());
             return afficher(bailleur, formulaire, null, model);
@@ -115,17 +119,16 @@ public class JiramaController {
 
     /** Impute la part JIRAMA de chaque locataire sur son échéance. */
     @PostMapping("/jirama/appliquer")
-    public Object appliquer(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                            @Valid @ModelAttribute("formulaireJirama") JiramaForm formulaire,
-                            BindingResult erreurs,
-                            Model model) {
-        Utilisateur bailleur = bailleurOuVide(bailleurId, model);
+    public Object appliquer(@Valid @ModelAttribute("formulaireJirama") JiramaForm formulaire,
+                           BindingResult erreurs,
+                           Model model) {
+        Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
         if (erreurs.hasErrors()) {
             LOG.info("Imputation JIRAMA refusée : {} erreur(s) de saisie.", erreurs.getErrorCount());
             return afficher(bailleur, formulaire, null, model);
         }
         try {
-            ResultatJirama resultat = jiramaService.appliquer(formulaire);
+            ResultatJirama resultat = jiramaService.appliquer(formulaire, bailleur);
             long reportees = resultat.getNbReportees();
             String bilan = resultat.getLignes().size() - reportees + " écriture(s) effectuée(s) sur "
                     + resultat.getPeriodeLisible();
@@ -152,7 +155,7 @@ public class JiramaController {
      */
     private String afficher(Utilisateur bailleur, JiramaForm formulaire,
                             ResultatJirama resultat, Model model) {
-        List<Logement> parc = bailleur == null ? List.of() :
+        List<Logement> parc =
                 logements.findByProprietaireIdOrderByVilleAscQuartierFokontanyAsc(bailleur.getId());
 
         model.addAttribute("bailleur", bailleur);
@@ -175,15 +178,23 @@ public class JiramaController {
     }
 
     /**
-     * Résout le bailleur courant. En cas de base vide, la page est rendue quand
-     * même avec des listes vides, comme sur le tableau de bord.
+     * Ne retient un {@code logementId} que s'il figure dans le parc du bailleur.
+     *
+     * <p>Le paramètre vient de la liste déroulante, donc d'une valeur légitime,
+     * mais il est modifiable dans l'URL. Le service choisit alors le premier bien
+     * du parc à défaut, et ne divulgue rien sur l'existence d'un bien inconnu.
      */
-    private Utilisateur bailleurOuVide(Integer bailleurId, Model model) {
-        try {
-            return contratService.utilisateurCourant(bailleurId);
-        } catch (RegleMetierException e) {
-            model.addAttribute("messageErreur", e.getMessage());
+    private Integer logementAppartenantAuParc(Utilisateur bailleur, Integer logementId) {
+        if (logementId == null) {
             return null;
         }
+        boolean connu = logements.findByProprietaireIdOrderByVilleAscQuartierFokontanyAsc(bailleur.getId())
+                .stream()
+                .anyMatch(l -> logementId.equals(l.getId()));
+        if (!connu) {
+            LOG.warn("Bien n° {} demandé par le bailleur n° {} : hors de son parc, ignoré.",
+                    logementId, bailleur.getId());
+        }
+        return connu ? logementId : null;
     }
 }

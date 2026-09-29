@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import mg.bailtech.model.ContratDeBail;
 import mg.bailtech.model.Logement;
 import mg.bailtech.model.Utilisateur;
+import mg.bailtech.service.BailleurCourantService;
 import mg.bailtech.service.ContratPdfService;
 import mg.bailtech.service.ContratService;
 import mg.bailtech.service.RegleMetierException;
@@ -55,10 +56,14 @@ public class ContratController {
 
     private final ContratService contratService;
     private final ContratPdfService contratPdfService;
+    private final BailleurCourantService bailleurCourant;
 
-    public ContratController(ContratService contratService, ContratPdfService contratPdfService) {
+    public ContratController(ContratService contratService,
+                             ContratPdfService contratPdfService,
+                             BailleurCourantService bailleurCourant) {
         this.contratService = contratService;
         this.contratPdfService = contratPdfService;
+        this.bailleurCourant = bailleurCourant;
     }
 
     // ==================================================================
@@ -66,11 +71,10 @@ public class ContratController {
     // ==================================================================
 
     @GetMapping({"/", "/contrats/create", "/contrats/create-wizard"})
-    public String afficherFormulaire(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                                     Model model) {
+    public String afficherFormulaire(Model model) {
         ContratForm form = new ContratForm();
         try {
-            Utilisateur bailleur = contratService.utilisateurCourant(bailleurId);
+            Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
             contratService.preparerFormulaire(form, bailleur);
             alimenterModel(form, bailleur, model);
         } catch (RegleMetierException e) {
@@ -117,14 +121,12 @@ public class ContratController {
     public Object enregistrer(@Valid @ModelAttribute("contratForm") ContratForm form,
                               BindingResult bindingResult,
                               Model model) {
-        Utilisateur bailleur;
-        try {
-            bailleur = contratService.utilisateurCourant(form.getBailleurId());
-        } catch (RegleMetierException e) {
-            bindingResult.reject(e.getCode(), e.getMessage());
-            alimenterModelVide(form, model, e.getMessage());
-            return VUE_CONTRAT;
-        }
+        // Le bailleur vient de la session, jamais du formulaire : le champ
+        // bailleurId reste une donnée d'affichage, réécrite ici avant tout
+        // usage, pour qu'un envoi forgé ne puisse pas faire enregistrer un
+        // contrat au nom d'un autre propriétaire.
+        Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
+        form.setBailleurId(bailleur.getId());
 
         // Levée explicite de l'exception métier en cas d'incohérence de dates.
         try {
