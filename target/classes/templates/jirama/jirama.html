@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: entete('Calculateur JIRAMA')}">
+    <meta charset="UTF-8">
+    <title>Bailtech</title>
+</head>
+
+<body class="bg-slate-50">
+
+<div class="flex min-h-screen w-full flex-col lg:flex-row">
+
+    <div th:replace="~{fragments/layout :: menu('jirama')}"></div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <header th:replace="~{fragments/layout :: en-tete('Calculateur de charges JIRAMA')}"></header>
+
+        <div class="flex flex-1 flex-col gap-8 self-stretch p-4 sm:p-8">
+
+            <div th:if="${messageErreur != null}" role="alert"
+                 class="flex items-center gap-3 self-stretch rounded-2xl border border-solid border-amber-200 bg-amber-50 px-6 py-4">
+                <img th:src="@{/icons/information.png}" alt="" class="h-5 w-5 shrink-0">
+                <span class="text-sm font-semibold text-amber-900" th:text="${messageErreur}">Message</span>
+            </div>
+            <div th:if="${messageSucces != null}" role="status"
+                 class="flex items-center gap-3 self-stretch rounded-2xl border border-solid border-emerald-200 bg-emerald-50 px-6 py-4">
+                <img th:src="@{/icons/information.png}" alt="" class="h-5 w-5 shrink-0">
+                <span class="text-sm font-semibold text-emerald-900" th:text="${messageSucces}">Message</span>
+            </div>
+
+            <!-- ================= Sélection du compteur principal ================= -->
+            <!--
+                Ce formulaire ne porte pas th:object : il ne fait que naviguer
+                (GET), il ne lie rien. Le select est marqué par th:selected
+                d'après la valeur courante, th:field exigerait un objet de
+                formulaire englobant qui n'a pas de sens ici.
+            -->
+            <div class="flex flex-col self-stretch rounded-2xl border border-solid border-slate-200 bg-white p-6">
+                <div th:if="${#lists.isEmpty(parc)}" class="flex flex-col gap-2">
+                    <span class="text-sm font-semibold text-amber-900">Aucun logement enregistré</span>
+                    <span class="text-xs text-amber-800">
+                        Rattachez d'abord un compteur JIRAMA à un bien depuis le module « biens ».
+                    </span>
+                </div>
+                <form th:if="${!#lists.isEmpty(parc)}" th:action="@{/jirama}" method="get"
+                      class="flex flex-col gap-2 sm:flex-row sm:items-end">
+                    <div class="flex flex-1 flex-col gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Bien concerné</span>
+                        <select name="logementId"
+                                class="flex-1 rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-800 outline-none">
+                            <option th:each="compteur : ${parc}" th:value="${compteur.logementId}"
+                                    th:selected="${compteur.logementId == formulaireJirama.logementId}"
+                                    th:text="|${compteur.bien} — ${compteur.typeGestion}|">
+                                Lot IVG 22 — Compteur unique
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="flex items-center justify-center gap-2 rounded-xl bg-blue-900 px-4 py-3">
+                        <span class="text-sm font-semibold text-white">Afficher</span>
+                    </button>
+                </form>
+            </div>
+
+            <!--
+                Formulaire principal.
+
+                th:object + th:field : c'est ce qui alimente JiramaForm. Le
+                logementId n'est pas resoumis ici (il est choisi par le GET
+                ci-dessus) et le service le relit en base : un envoi forgé ne
+                peut pas faire calculer un compteur qui n'appartient pas au
+                bailleur.
+
+                method="post" explicite en plus de th:action : conforme aux
+                deux usages, et le formulaire reste soumettant même si
+                l'attribut dynamique était ignoré.
+            -->
+            <form th:action="@{/jirama/calculer}" method="post" th:object="${formulaireJirama}"
+                  class="flex flex-col gap-8 self-stretch">
+
+                <div class="flex flex-col self-stretch gap-8 xl:flex-row">
+
+                    <!-- ============ Colonne principale ============ -->
+                    <div class="flex flex-1 flex-col gap-6">
+                        <div class="flex flex-col gap-6 self-stretch rounded-2xl border border-solid border-slate-200 bg-white p-6">
+                            <div class="flex items-center gap-3 self-stretch">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-50">
+                                    <img th:src="@{/icons/ampoule.png}" alt="" class="h-5 w-5">
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-base font-bold text-slate-900">Compteur principal</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Compteur électricité</span>
+                                <div class="flex flex-col self-stretch">
+                                    <div class="flex justify-between items-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 pl-4 pr-4 py-3">
+                                        <input type="text" inputmode="decimal" th:field="*{indexElectricitePrincipal}"
+                                               class="flex-1 bg-transparent font-semibold text-base text-slate-800 outline-none"
+                                               th:errorclass="border-red-400"
+                                               aria-label="Index électricité relevé sur le compteur principal">
+                                        <span class="font-semibold text-base text-slate-500"
+                                              th:text="*{numeroCompteurElectricite}">JIRAMA-ELEC-4411</span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold text-slate-500"
+                                              th:text="|kWh — index de départ : *{indexDepartElectricitePrincipal}|">
+                                            kWh — index de départ enregistré à l'état des lieux</span>
+                                    </div>
+                                </div>
+                                <p th:if="${#fields.hasErrors('indexElectricitePrincipal')}"
+                                   class="text-xs text-red-600" th:errors="*{indexElectricitePrincipal}">Index invalide</p>
+                            </div>
+
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Compteur eau</span>
+                                <div class="flex flex-col self-stretch">
+                                    <div class="flex justify-between items-center self-stretch rounded-xl border border-solid border-slate-200 bg-slate-50 pl-4 pr-4 py-3">
+                                        <input type="text" inputmode="decimal" th:field="*{indexEauPrincipal}"
+                                               class="flex-1 bg-transparent font-semibold text-base text-slate-800 outline-none"
+                                               th:errorclass="border-red-400"
+                                               aria-label="Index eau relevé sur le compteur principal">
+                                        <span class="font-semibold text-base text-slate-500"
+                                              th:text="*{numeroCompteurEau}">JIRAMA-EAU-7781</span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold text-slate-500"
+                                              th:text="|m³ — index de départ : *{indexDepartEauPrincipal}|">
+                                            m³ — index de départ enregistré à l'état des lieux</span>
+                                    </div>
+                                </div>
+                                <p th:if="${#fields.hasErrors('indexEauPrincipal')}" class="text-xs text-red-600"
+                                   th:errors="*{indexEauPrincipal}">Index invalide</p>
+                            </div>
+
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Mode de comptage</span>
+                                <div class="flex justify-center self-stretch rounded-xl border border-solid border-blue-100 bg-blue-50 pl-4 pr-4 py-3">
+                                    <div class="flex flex-col self-stretch">
+                                        <!--
+                                            Elvis : typeGestion peut être absent
+                                            tant que le compteur réel n'a pas
+                                            été relu en base.
+                                        -->
+                                        <span class="text-lg font-bold text-blue-900"
+                                              th:text="*{typeGestion?.libelle ?: '—'}">Compteur unique</span>
+                                        <span class="text-xs font-normal text-blue-700" th:if="${repartitionRequise}">
+                                            Répartition requise entre les sous-compteurs des locataires.
+                                        </span>
+                                        <span class="text-xs font-normal text-blue-700" th:unless="${repartitionRequise}">
+                                            Consommation imputée en totalité au locataire.
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold text-blue-900">JIRAMA</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ============ Tarifs et période ============ -->
+                        <div class="flex flex-col gap-4 self-stretch rounded-2xl border border-solid border-slate-200 bg-white p-6">
+                            <div class="flex flex-col self-stretch">
+                                <span class="text-base font-bold text-slate-900">Tarifs et période d'imputation</span>
+                            </div>
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Prix unitaire électricité (Ar/kWh)</span>
+                                <input type="text" inputmode="decimal" th:field="*{prixUnitaireElectricite}"
+                                       class="rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-base text-slate-800 outline-none"
+                                       th:errorclass="border-red-400">
+                                <p th:if="${#fields.hasErrors('prixUnitaireElectricite')}" class="text-xs text-red-600"
+                                   th:errors="*{prixUnitaireElectricite}">Tarif invalide</p>
+                            </div>
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Prix unitaire eau (Ar/m³)</span>
+                                <input type="text" inputmode="decimal" th:field="*{prixUnitaireEau}"
+                                       class="rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-base text-slate-800 outline-none"
+                                       th:errorclass="border-red-400">
+                                <p th:if="${#fields.hasErrors('prixUnitaireEau')}" class="text-xs text-red-600"
+                                   th:errors="*{prixUnitaireEau}">Tarif invalide</p>
+                            </div>
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Montant de la facture JIRAMA (Ar, facultatif)</span>
+                                <input type="text" inputmode="decimal" th:field="*{montantFacture}"
+                                       class="rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-base text-slate-800 outline-none placeholder:text-slate-400"
+                                       placeholder="calculé si vide" th:errorclass="border-red-400">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-semibold text-slate-500">
+                                        Laisse vide pour répartir le seul produit consommation × tarif.
+                                    </span>
+                                </div>
+                                <p th:if="${#fields.hasErrors('montantFacture')}" class="text-xs text-red-600"
+                                   th:errors="*{montantFacture}">Montant invalide</p>
+                            </div>
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Traitement de l'écart (parties communes)</span>
+                                <select th:field="*{modeEcart}"
+                                        class="rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-800 outline-none">
+                                    <option th:each="mode : ${modesEcart}" th:value="${mode}"
+                                            th:text="${mode.libelle}">Au prorata de la consommation</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Période imputée</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" th:field="*{mois}" min="1" max="12"
+                                           class="w-24 rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-800 outline-none"
+                                           th:errorclass="border-red-400">
+                                    <span class="text-base font-semibold text-slate-500">/</span>
+                                    <input type="number" th:field="*{annee}" min="2026"
+                                           class="w-32 rounded-xl border border-solid border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-800 outline-none">
+                                </div>
+                                <p th:if="${#fields.hasErrors('mois')}" class="text-xs text-red-600"
+                                   th:errors="*{mois}">Mois invalide</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============ Sous-compteurs ============ -->
+                    <div class="flex flex-1 flex-col">
+                        <div class="flex flex-col self-stretch overflow-hidden rounded-2xl border border-solid border-slate-200 bg-white">
+                            <div class="flex flex-col gap-3 self-stretch border-solid border-slate-100 bg-slate-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
+                                        <img th:src="@{/icons/groupe-d'utilisateurs.png}" alt="" class="h-5 w-5">
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <div class="flex flex-col self-stretch">
+                                            <span class="text-base font-bold text-slate-900">Sous-compteurs &amp; Répartition</span>
+                                        </div>
+                                        <div class="flex flex-col self-stretch">
+                                            <span class="text-xs font-normal text-slate-500">
+                                                Un relevé par locataire dont le bail est en cours
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-center gap-1 self-start rounded-lg bg-blue-50 px-3 py-2 sm:self-auto">
+                                    <span class="text-xs font-bold text-center text-blue-900"
+                                          th:text="|${#lists.size(formulaireJirama.sousCompteurs)} sous-compteur(s)|">
+                                        3 sous-compteur(s)</span>
+                                </div>
+                            </div>
+
+                            <div th:if="${#lists.isEmpty(formulaireJirama.sousCompteurs)}"
+                                 class="flex flex-col items-center self-stretch p-10 text-center">
+                                <span class="text-sm font-medium text-slate-500">
+                                    Aucun bail en cours : pas de sous-compteur à relever.
+                                </span>
+                            </div>
+
+                            <div th:unless="${#lists.isEmpty(formulaireJirama.sousCompteurs)}"
+                                 class="flex flex-col self-stretch">
+                                <div class="overflow-x-auto">
+                                    <div class="min-w-[880px]">
+
+                                        <div class="flex justify-center self-stretch bg-slate-50">
+                                            <div class="flex w-40 flex-col px-6 py-4">
+                                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Locataire / Bien</span>
+                                            </div>
+                                            <div class="flex w-40 flex-col px-6 py-4">
+                                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Index Élec (kWh)</span>
+                                            </div>
+                                            <div class="flex w-36 flex-col px-6 py-4">
+                                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Index Eau (m³)</span>
+                                            </div>
+                                            <div class="flex w-40 flex-col px-6 py-4">
+                                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Consommation</span>
+                                            </div>
+                                            <div class="flex flex-1 flex-col px-6 py-4">
+                                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Mode de comptage</span>
+                                            </div>
+                                        </div>
+
+                                        <!--
+                                            Le contrat est transporté en champ
+                                            masqué parce que l'index seul ne
+                                            désigne pas la ligne. Il ne vaut
+                                            pourtant PAS autorisation : le
+                                            service le confronte au parc du
+                                            bailleur avant toute écriture
+                                            (JiramaService.verifierPerimetre).
+                                        -->
+                                        <div th:each="releve, statut : ${formulaireJirama.sousCompteurs}"
+                                             th:with="idx=${statut.index}"
+                                             class="flex items-center self-stretch border-t border-solid border-slate-100 pl-6">
+                                            <input type="hidden" th:field="*{sousCompteurs[__${idx}__].contratId}">
+                                            <div class="flex w-40 flex-col py-4">
+                                                <div class="flex flex-col self-stretch">
+                                                    <span class="text-sm font-bold text-slate-900"
+                                                          th:text="${releve.locataire}">Sahondra R.</span>
+                                                </div>
+                                                <div class="flex flex-col self-stretch">
+                                                    <span class="text-xs font-normal text-slate-500" th:text="${releve.bien}">Lot IVG 22</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex w-40 flex-col py-4 pl-6 pr-6">
+                                                <div class="flex w-24 justify-center rounded-lg border border-solid border-slate-200 bg-white px-3 py-1.5">
+                                                    <input type="text" inputmode="decimal"
+                                                           th:field="*{sousCompteurs[__${idx}__].indexElectricite}"
+                                                           th:attr="aria-label='Index électricité pour ' + ${releve.bien}"
+                                                           th:errorclass="border-red-400"
+                                                           class="w-full bg-transparent text-sm font-normal text-slate-800 outline-none">
+                                                </div>
+                                            </div>
+                                            <div class="flex w-36 flex-col px-6 py-4">
+                                                <div class="flex w-24 justify-center rounded-lg border border-solid border-slate-200 bg-white px-3 py-1.5">
+                                                    <input type="text" inputmode="decimal"
+                                                           th:field="*{sousCompteurs[__${idx}__].indexEau}"
+                                                           th:attr="aria-label='Index eau pour ' + ${releve.bien}"
+                                                           th:errorclass="border-red-400"
+                                                           class="w-full bg-transparent text-sm font-normal text-slate-800 outline-none">
+                                                </div>
+                                            </div>
+                                            <div class="flex w-40 flex-col px-6 py-4">
+                                                <span class="text-sm font-semibold text-slate-700"
+                                                      th:text="|${releve.consommationElectricite} kWh / ${releve.consommationEau} m³|">
+                                                    85 kWh / 4.2 m³</span>
+                                                <div class="flex flex-col">
+                                                    <span class="text-xs font-normal text-slate-400"
+                                                          th:text="|départ : ${releve.indexDepartElectricite} / ${releve.indexDepartEau}|">départ</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-1 flex-col px-6 py-4">
+                                                <span class="text-xs font-medium text-slate-500" th:text="${releve.typeGestion}">Sous-compteur</span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ Résultats ============ -->
+                <div class="flex flex-col self-stretch overflow-hidden rounded-2xl border border-solid border-slate-200 bg-white">
+                    <div class="flex flex-col gap-3 self-stretch border-solid border-slate-100 p-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+                                <img th:src="@{/icons/calculatrice.png}" alt="" class="h-5 w-5">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-lg font-bold text-slate-900">Résultats de calcul de répartition</span>
+                            </div>
+                        </div>
+                        <!--
+                            Deux boutons, deux destinations. formaction
+                            permet à un même formulaire de viser /calculer ou
+                            /appliquer ; le jeton CSRF du formulaire s'applique
+                            dans les deux cas.
+                        -->
+                        <div class="flex flex-wrap gap-4">
+                            <button type="submit" th:formaction="@{/jirama/calculer}"
+                                    class="flex items-center gap-2 rounded-xl border border-solid border-slate-200 px-5 py-[11px]">
+                                <span class="text-base font-bold text-center text-slate-600">Calculer la répartition</span>
+                            </button>
+                            <button type="submit" th:formaction="@{/jirama/appliquer}"
+                                    class="flex items-center gap-2 rounded-xl bg-blue-900 px-5 py-[11px]">
+                                <span class="text-base font-bold text-center text-white">Appliquer aux échéances</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div th:if="${resultatJirama == null}"
+                         class="flex flex-col items-center self-stretch p-10 text-center">
+                        <span class="text-sm font-medium text-slate-500">
+                            Aucun calcul effectué : saisissez les index puis lancez la répartition.
+                        </span>
+                    </div>
+
+                    <div th:if="${resultatJirama != null and #lists.isEmpty(resultatJirama.lignes)}"
+                         class="flex flex-col items-center self-stretch p-10 text-center">
+                        <span class="text-sm font-medium text-slate-500">
+                            Aucun locataire à imputer : le relevé ne désigne aucun bail en cours de votre parc.
+                        </span>
+                    </div>
+
+                    <div th:if="${resultatJirama != null and !#lists.isEmpty(resultatJirama.lignes)}"
+                         class="flex flex-col self-stretch">
+
+                        <div th:if="${!resultatJirama.coherent}" role="alert"
+                             class="flex items-center gap-3 self-stretch border-b border-solid border-amber-200 bg-amber-50 px-6 py-3">
+                            <img th:src="@{/icons/information.png}" alt="" class="h-5 w-5 shrink-0">
+                            <span class="text-sm font-semibold text-amber-900">
+                                Relevés incohérents : la somme des sous-compteurs dépasse le compteur principal.
+                                Vérifiez les index avant d'imputer.
+                            </span>
+                        </div>
+
+                        <div class="flex flex-col gap-4 self-stretch bg-slate-50 p-6 sm:flex-row">
+                            <div class="flex flex-1 flex-col rounded-xl border border-solid border-slate-200 bg-white p-4">
+                                <div class="flex flex-col self-stretch">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Facture JIRAMA</span>
+                                </div>
+                                <div class="self-stretch">
+                                    <span class="text-xl font-bold text-slate-900"
+                                          th:text="${resultatJirama.montantFactureLisible}">—</span><span
+                                          class="text-xs font-bold text-slate-400"> MGA</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-1 flex-col rounded-xl border border-solid border-slate-200 bg-white p-4">
+                                <div class="flex flex-col self-stretch">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Total consommé (locataires)</span>
+                                </div>
+                                <div class="self-stretch">
+                                    <span class="text-xl font-bold text-slate-900"
+                                          th:text="${resultatJirama.montantMesureTotalLisible}">—</span><span
+                                          class="text-xs font-bold text-slate-400"> MGA</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-1 flex-col rounded-xl border border-solid border-slate-200 bg-white p-4">
+                                <div class="flex flex-col self-stretch">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Écart (parties communes)</span>
+                                </div>
+                                <div class="self-stretch">
+                                    <span class="text-xl font-bold text-slate-900"
+                                          th:text="${resultatJirama.ecartLisible}">—</span><span
+                                          class="text-xs font-bold text-slate-400"> MGA</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-1 flex-col rounded-xl border border-solid border-slate-200 bg-white p-4">
+                                <div class="flex flex-col self-stretch">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Total réparti</span>
+                                </div>
+                                <div class="self-stretch">
+                                    <span class="text-xl font-bold text-emerald-700"
+                                          th:text="${resultatJirama.montantRepartiLisible}">—</span><span
+                                          class="text-xs font-bold text-slate-400"> MGA</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <div class="min-w-[900px]">
+                                <div class="flex flex-col self-stretch border-t border-b border-solid border-slate-200 bg-slate-100">
+                                    <div class="flex self-stretch">
+                                        <div class="flex w-56 flex-col px-6 py-5">
+                                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Locataire</span>
+                                        </div>
+                                        <div class="flex w-40 flex-col px-6 py-5">
+                                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Consom. (kWh)</span>
+                                        </div>
+                                        <div class="flex w-40 flex-col px-6 py-5">
+                                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Consom. (m³)</span>
+                                        </div>
+                                        <div class="flex w-36 flex-col px-6 py-5">
+                                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Part Élec</span>
+                                        </div>
+                                        <div class="flex w-36 flex-col px-6 py-5">
+                                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Part Eau</span>
+                                        </div>
+                                        <div class="flex flex-1 flex-col items-end px-6 py-5">
+                                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Total à payer</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--
+                                    Les montants affichés viennent des getters
+                                    « Lisible » de LigneCharge : la mise en forme
+                                    à la française est faite côté service,
+                                    #numbers ne sachant pas mettre en forme un
+                                    BigDecimal avec séparateur de milliers.
+                                -->
+                                <div th:each="ligne : ${resultatJirama.lignes}"
+                                     class="flex items-center self-stretch border-t border-solid border-slate-100 pl-6">
+                                    <div class="flex w-56 flex-col py-4">
+                                        <span class="text-sm font-bold text-slate-900" th:text="${ligne.locataire}">Sahondra R.</span>
+                                        <span class="text-xs font-normal text-slate-500" th:text="${ligne.bien}">Lot IVG 22</span>
+                                    </div>
+                                    <div class="flex w-40 flex-col py-4">
+                                        <span class="text-sm font-medium text-slate-700"
+                                              th:text="|${ligne.consommationElectriciteLisible} kWh|">85 kWh</span>
+                                    </div>
+                                    <div class="flex w-40 flex-col py-4">
+                                        <span class="text-sm font-medium text-slate-700"
+                                              th:text="|${ligne.consommationEauLisible} m³|">4.2 m³</span>
+                                    </div>
+                                    <div class="flex w-36 flex-col py-4">
+                                        <span class="text-sm font-normal text-slate-700" th:text="${ligne.partElectriciteLisible}">—</span>
+                                    </div>
+                                    <div class="flex w-36 flex-col py-4">
+                                        <span class="text-sm font-normal text-slate-700" th:text="${ligne.partEauLisible}">—</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col items-end py-4">
+                                        <span class="text-lg font-bold text-right text-slate-900"
+                                              th:text="|${ligne.partTotaleLisible} Ar|">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ Journal des écritures ============ -->
+                <div th:if="${!#lists.isEmpty(ecrituresJirama)}"
+                     class="flex flex-col self-stretch overflow-hidden rounded-2xl border border-solid border-slate-200 bg-white">
+                    <div class="flex flex-col self-stretch border-solid border-slate-100 p-6">
+                        <div class="flex flex-col">
+                            <span class="text-lg font-bold text-slate-900">Écritures sur les échéances</span>
+                            <span class="text-xs font-normal text-slate-500">
+                                Montant attendu = loyer du contrat + part JIRAMA du locataire.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div class="min-w-[900px]">
+                            <div class="flex self-stretch border-t border-b border-solid border-slate-200 bg-slate-100">
+                                <div class="flex w-64 flex-col px-6 py-4">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Locataire</span>
+                                </div>
+                                <div class="flex w-36 flex-col px-6 py-4">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Période</span>
+                                </div>
+                                <div class="flex w-40 flex-col px-6 py-4">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Part JIRAMA</span>
+                                </div>
+                                <div class="flex w-44 flex-col px-6 py-4">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Montant attendu</span>
+                                </div>
+                                <div class="flex flex-1 flex-col px-6 py-4">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Issue</span>
+                                </div>
+                            </div>
+                            <div th:each="ecriture : ${ecrituresJirama}"
+                                 class="flex items-center self-stretch border-t border-solid border-slate-100 pl-6">
+                                <div class="flex w-64 flex-col py-4">
+                                    <span class="text-sm font-bold text-slate-900" th:text="${ecriture.locataire}">Sahondra R.</span>
+                                </div>
+                                <div class="flex w-36 flex-col px-6 py-4">
+                                    <span class="text-sm font-medium text-slate-700" th:text="${ecriture.periodeLisible}">09/2026</span>
+                                </div>
+                                <div class="flex w-40 flex-col px-6 py-4">
+                                    <span class="text-sm font-medium text-slate-700"
+                                          th:text="|${ecriture.partJiramaLisible} Ar|">—</span>
+                                </div>
+                                <div class="flex w-44 flex-col px-6 py-4">
+                                    <span th:if="${ecriture.reportee}" class="text-sm font-normal text-slate-400"
+                                          th:text="|${ecriture.montantAvantLisible} Ar (inchangé)|">—</span>
+                                    <span th:unless="${ecriture.reportee}" class="text-sm font-bold text-emerald-700"
+                                          th:text="|${ecriture.montantApresLisible} Ar|">—</span>
+                                </div>
+                                <div class="flex flex-1 flex-col px-6 py-4">
+                                    <span th:if="${ecriture.reportee}" class="text-sm font-normal text-amber-800"
+                                          th:text="|Ignorée : ${ecriture.motif}|">Ignorée</span>
+                                    <span th:unless="${ecriture.reportee}" class="text-sm font-normal text-emerald-700">
+                                        Échéance mise à jour
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- ================= Aide contextuelle ================= -->
+            <div class="flex flex-col self-stretch gap-8 xl:flex-row">
+                <div class="flex flex-1 gap-4 rounded-2xl border border-solid border-amber-200 bg-amber-50 p-6">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+                        <img th:src="@{/icons/ampoule.png}" alt="" class="h-5 w-5">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex flex-col">
+                            <span class="text-base font-bold text-amber-900">Astuce : calcul de la part commune</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-normal leading-relaxed text-amber-800">
+                                L'écart entre le compteur principal et la somme des sous-compteurs représente
+                                souvent l'éclairage des parties communes ou les pertes. Bailtech vous suggère
+                                de répartir cet écart au prorata de la consommation ou de l'inclure dans les
+                                charges fixes.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-1 gap-4 rounded-2xl border border-solid border-blue-200 bg-blue-50 p-6">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                        <img th:src="@{/icons/information.png}" alt="" class="h-5 w-5">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex flex-col">
+                            <span class="text-base font-bold text-blue-900">Données du compteur</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-normal leading-relaxed text-blue-800">
+                                Les numéros de compteurs et les index de départ proviennent de la fiche du
+                                logement (table <code>logement</code>). Ils servent de référence au calcul de
+                                la quote-part de chaque occupant et ne sont pas modifiables depuis cet écran.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

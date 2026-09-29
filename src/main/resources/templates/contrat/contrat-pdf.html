@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Gabarit d'impression du contrat de bail.
+
+    Ce fichier est rendu par le moteur XHTML de ConfigurationImpression puis
+    converti en PDF par Flying Saucer. Contraintes impératives du format :
+
+      * le document doit être du XHTML bien formé : une seule racine, balises
+        auto-fermantes (par exemple <br />), et uniquement des entités
+        numériques pour les caractères spéciaux ;
+      * le CSS est un sous-ensemble de CSS 2.1 : ni flexbox, ni grid, ni
+        variables, ni police distante ;
+      * le document produit fait deux pages : le contrat (page 1), puis les
+        signatures et l'échéancier (page 2).
+
+    Les accents sont écrits directement en UTF-8 : ils appartiennent au jeu
+    Latin-1 utilisé par les polices PDF standard (Times, Helvetica), ce qui
+    évite tout embarquement de fichier de police.
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Contrat de bail à usage d'habitation</title>
+    <style type="text/css">
+        @page {
+            size: A4 portrait;
+            margin: 1.6cm 1.8cm 1.4cm 1.8cm;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 10pt;
+            line-height: 1.32;
+            color: #000000;
+        }
+
+        h1 {
+            font-size: 14pt;
+            text-align: center;
+            text-decoration: underline;
+            margin-top: 0;
+            margin-bottom: 2pt;
+        }
+
+        h2 {
+            font-size: 10pt;
+            margin: 9pt 0 3pt 0;
+            padding-bottom: 1pt;
+            border-bottom: 1px solid #000000;
+        }
+
+        p {
+            margin: 0 0 4pt 0;
+            text-align: justify;
+        }
+
+        .entete {
+            font-size: 8.5pt;
+            text-align: right;
+            color: #444444;
+        }
+
+        .sous-titre {
+            text-align: center;
+            font-size: 9.5pt;
+            margin-bottom: 8pt;
+        }
+
+        .saut-page {
+            page-break-after: always;
+        }
+
+        .mention-legale {
+            font-size: 8.5pt;
+            font-style: italic;
+            color: #444444;
+        }
+
+        .signature {
+            width: 46%;
+            height: 88pt;
+            border: 1px dashed #444444;
+            padding: 5pt;
+            vertical-align: top;
+        }
+
+        .signature .legende {
+            font-size: 9pt;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .signature .mention {
+            font-size: 8.5pt;
+            color: #666666;
+            text-align: center;
+            margin-top: 46pt;
+        }
+
+        .separation {
+            border: none;
+            width: 6%;
+        }
+
+        table.echeancier {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5pt;
+        }
+
+        table.echeancier th,
+        table.echeancier td {
+            border: 1px solid #999999;
+            padding: 3pt 5pt;
+        }
+
+        table.echeancier th {
+            background-color: #eeeeee;
+        }
+
+        .centre {
+            text-align: center;
+        }
+
+        .vise {
+            width: 52%;
+            margin-left: 48%;
+            border: 1px solid #000000;
+            padding: 7pt;
+        }
+
+        .vise .legende {
+            font-size: 9pt;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .pied {
+            margin-top: 14pt;
+            padding-top: 4pt;
+            border-top: 1px solid #cccccc;
+            font-size: 8pt;
+            color: #666666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================= PAGE 1 ============================= -->
+<div class="entete">
+    Plateforme <span th:text="${appareil}">Bailtech</span> &#183;
+    référence <span th:text="${contrat.reference}">N&#176; 1/2026</span> &#183;
+    établi à <span th:text="${contrat.lieu}">ANTANANARIVO</span>, le
+    <span th:text="${contrat.dateEdition}">01/01/2026</span>
+</div>
+
+<h1>CONTRAT DE BAIL À USAGE D'HABITATION</h1>
+<p class="sous-titre">Rédigé conformément à la législation malgache relative au droit d'habitation</p>
+
+<h2>ENTRE LES SOUSSIGNÉS</h2>
+
+<p>
+    Le premier soussigné, <strong th:text="${contrat.bailleurNom}">Nom du bailleur</strong>,
+    de profession <span th:text="${contrat.bailleurProfession}">Non renseignée</span>, titulaire de la
+    Carte d'Identité Nationale n&#176; <span th:text="${contrat.bailleurCin}">000000000000</span>,
+    demeurant à <span th:text="${contrat.bailleurAdresse}">Adresse du bailleur</span>,
+    joignable au <span th:text="${contrat.bailleurTelephone}">000 00 000 00</span>, ci-après dénommé
+    <strong>le Bailleur</strong>, d'une part,
+</p>
+
+<p>
+    Le second soussigné, <strong th:text="${contrat.locataireNom}">Nom du locataire</strong>,
+    titulaire de la Carte d'Identité Nationale n&#176; <span th:text="${contrat.locataireCin}">000000000000</span>,
+    demeurant à <span th:text="${contrat.locataireAdresse}">Adresse du locataire</span>,
+    joignable au <span th:text="${contrat.locataireTelephone}">000 00 000 00</span>, ci-après dénommé
+    <strong>le Locataire</strong>, d'autre part,
+</p>
+
+<p class="mention-legale">
+    Les parties déclarent disposer de la pleine capacité juridique, agir en leur propre
+    nom et pour leur propre compte, et disposer de la qualité requise pour consentir
+    librement au présent contrat.
+</p>
+
+<h2>ARTICLE 1 : OBJET DU CONTRAT</h2>
+<p>
+    Le présent contrat a pour objet la location d'un bien immobilier de type
+    <span th:text="${contrat.bienType}">appartement</span>, composé de
+    <span th:text="${contrat.bienPieces}">3 pièces principales</span>, situé au
+    <span th:text="${contrat.bienAdresse}">Lot 00</span>, quartier
+    <span th:text="${contrat.bienQuartier}">Quartier</span>, ville de
+    <span th:text="${contrat.bienVille}">Ville</span>.
+</p>
+<p>
+    Description du bien : <span th:text="${contrat.bienDescription}">Non renseignée</span>.
+</p>
+<p>
+    Le locataire déclare bien connaître les lieux pour les avoir visités et déclare les
+    prendre dans leur état actuel, sans réclamation ultérieure.
+</p>
+<p>
+    Le bien est loué meublé ou non meublé selon l'inventaire annexé, le cas échéant. Tout
+    changement d'affectation est soumis à l'accord écrit du bailleur.
+</p>
+
+<h2>ARTICLE 2 : DURÉE ET PRÉAVIS</h2>
+<p>
+    Le bail est consenti pour une durée déterminée, du <span th:text="${contrat.dateDebut}">01/01/2026</span>
+    au <span th:text="${contrat.dateFin}">31/12/2026</span> inclus.
+</p>
+<p>
+    Sauf stipulation contraire, la durée du préavis est fixée à
+    <span th:text="${contrat.dureePreavis}">3 mois</span> pour les deux parties, par lettre
+    recommandée avec accusé de réception, ou par tout autre moyen portant preuve de sa
+    date de réception.
+</p>
+<p>
+    Le locataire bénéficie d'un nouveau contrat dans les conditions prévues par la
+    réglementation en vigueur, sans que la présente clause constitue une obligation de
+    renouvellement au bénéfice du bailleur.
+</p>
+
+<h2>ARTICLE 3 : LOYER ET CHARGES</h2>
+<p>
+    Le loyer mensuel est fixé à la somme de
+    <strong><span th:text="${contrat.loyer}">0,00</span> Ariary</strong>, payable d'avance et
+    au plus tard avant le <strong><span th:text="${contrat.jourPaiement}">05</span></strong> de
+    chaque mois.
+</p>
+<p>
+    Arrêté à la somme de <em><span th:text="${contrat.loyerEnLettres}">montant du loyer en toutes lettres</span></em>.
+</p>
+<p>
+    Les charges JIRAMA relatives à l'eau et à l'électricité sont à la charge exclusive du
+    locataire, selon le mode de comptage retenu :
+    <strong th:text="${contrat.bienModeComptage}">Compteur unique</strong>. Compteur électricité
+    n&#176; <span th:text="${contrat.bienCompteurElectricite}">0000</span>, compteur eau
+    n&#176; <span th:text="${contrat.bienCompteurEau}">0000</span>.
+</p>
+<p th:if="${contrat.bienMethodeRepartition != ''}">
+    Règle de répartition des charges : <span th:text="${contrat.bienMethodeRepartition}">Règle de répartition</span>.
+</p>
+<p th:if="${contrat.bienMethodeRepartition == ''}">
+    La consommation relevée sur le compteur principal est imputée en totalité au locataire.
+</p>
+<p>
+    Toute révision du loyer ne peut intervenir que par avenant écrit, dans le respect de
+    la législation en vigueur.
+</p>
+
+<h2>ARTICLE 4 : DÉPÔT DE GARANTIE (CAUTION)</h2>
+<p>
+    À titre de garantie, le locataire verse ce jour une somme correspondant à
+    <span th:text="${contrat.cautionMois}">2</span> mois de loyer, soit la somme de
+    <strong><span th:text="${contrat.caution}">0,00</span> Ariary</strong>.
+</p>
+<p>
+    Cette somme est consignée auprès du bailleur contre quittance, ou auprès d'un
+    établissement bancaire. Elle sera restituée au locataire à la sortie du bien, après
+    déduction des éventuels impayés, des frais de réparations et des charges non
+    honorées. Le locataire ne peut opposer aucune retenue de son propre chef.
+</p>
+
+<div class="saut-page"></div>
+
+<!-- ============================= PAGE 2 ============================= -->
+<div class="entete">
+    Plateforme <span th:text="${appareil}">Bailtech</span> &#183;
+    référence <span th:text="${contrat.reference}">N&#176; 1/2026</span> &#183;
+    suite du contrat
+</div>
+
+<h2>ARTICLE 5 : OBLIGATIONS DU LOCATAIRE</h2>
+<p>Le locataire s'engage à :</p>
+<p>1. payer le loyer et les charges aux échéances fixées à l'article 3 ;</p>
+<p>2. occuper le bien personnellement et à titre de résidence, sans y exercer d'activité professionnelle, commerciale ou industrielle non autorisée ;</p>
+<p>3. ne consentir aucune sous-location, cession ou nantissement sans l'accord écrit préalable du bailleur ;</p>
+<p>4. entretenir les lieux en bon état et signaler sans délai toute dégradation ;</p>
+<p>5. respecter le règlement intérieur et les usages de voisinage.</p>
+<p>
+    Toute contravention donne lieu à mise en demeure dans les conditions de la loi et
+    peut, faute de régularisation dans le délai imparti, entraîner la résiliation de
+    plein droit aux torts et frais du locataire.
+</p>
+
+<h2>ARTICLE 6 : RÉSILIATION ET EXPULSION</h2>
+<p>
+    En cas de manquement grave du locataire, le bailleur peut agir en desistement de
+    la location, après mise en demeure restée infructueuse pendant le délai
+    réglementaire, le tout sans préjudice des dommages et intérêts qui seraient dus.
+</p>
+<p>
+    Le locataire ne peut invoquer un cas de force majeure qu'en justifiant
+    l'empêchement, l'absence de toute possibilité de remède et l'absence de toute
+    faute de sa part.
+</p>
+
+<h2>ARTICLE 7 : ÉTAT DES LIEUX ET INVENTAIRE</h2>
+<p>
+    Un état des lieux contradictoire est dressé à l'entrée et à la sortie du locataire,
+    en présence des deux parties ou de leurs représentants. L'inventaire du mobilier,
+    le cas échéant, y est annexé et signé par elles.
+</p>
+<p>
+    Les index de départ relevés à l'état des lieux d'entrée sont : électricité
+    <span th:text="${contrat.bienCompteurElectricite}">0000</span>, eau
+    <span th:text="${contrat.bienCompteurEau}">0000</span>. Le gemissement tient un
+    registre des relevés contradictoires, opposable aux deux parties.
+</p>
+
+<h2>ANNEXE : ÉCHÉANCIER DU LOYER</h2>
+<p th:if="${#lists.isEmpty(contrat.echeances)}" class="mention-legale">
+    Aucune échéance n'a encore été générée : le contrat n'est pas enregistré dans le
+    statut EN_COURS. L'échéancier est produit automatiquement dès la signature du bail.
+</p>
+<table class="echeancier" th:unless="${#lists.isEmpty(contrat.echeances)}">
+    <tr>
+        <th class="centre" style="width: 16%">Période</th>
+        <th class="centre" style="width: 30%">Montant dû</th>
+        <th class="centre" style="width: 24%">Montant versé</th>
+        <th class="centre" style="width: 30%">Situation</th>
+    </tr>
+    <tr th:each="echeance : ${contrat.echeances}">
+        <td class="centre" th:text="${echeance.periode}">01/2026</td>
+        <td class="centre" th:text="${echeance.montant}">0,00 MGA</td>
+        <td class="centre">&#8212;</td>
+        <td class="centre" th:text="${echeance.statut}"
+            th:style="'color: ' + ${echeance.statutCss}">À payer</td>
+    </tr>
+</table>
+
+<h2>SIGNATURES</h2>
+<p>
+    Fait en deux exemplaires originaux à <span th:text="${contrat.lieu}">ANTANANARIVO</span>, le
+    <span th:text="${contrat.dateEdition}">01/01/2026</span>, pour servir et valoir ce
+    que de droit.
+</p>
+
+<table style="width: 100%; border: none;">
+    <tr>
+        <td class="signature">
+            <div class="legende">Le Bailleur</div>
+            <div class="mention">Nom, date et signature</div>
+        </td>
+        <td class="separation"></td>
+        <td class="signature">
+            <div class="legende">Le Locataire</div>
+            <div class="mention">Nom, date et signature</div>
+        </td>
+    </tr>
+</table>
+
+<div style="height: 10pt"></div>
+
+<div class="vise">
+    <div class="legende">Visa du Fokontany / Commune</div>
+    <p class="mention-legale">
+        Espace réservé à l'autorité administrative. Le présent contrat doit être
+        enregistré auprès du Fokontany ou de la Commune du lieu de situation de
+        l'immeuble.
+    </p>
+</div>
+
+<h2>MENTIONS OBLIGATOIRES</h2>
+<p class="mention-legale">
+    Document produit par la plateforme <span th:text="${appareil}">Bailtech</span>,
+    référence <span th:text="${contrat.reference}">N&#176; 1/2026</span>, situation du
+    dossier : <span th:text="${contrat.statut}">En attente de signature</span>. Le
+    document est produit automatiquement ; seules la signature des parties et le visa
+    administratif lui confèrent valeur contractuelle.
+</p>
+
+<div class="pied">
+    Contrat de bail à usage d'habitation &#183; page 2 sur 2 &#183; produit par
+    <span th:text="${appareil}">Bailtech</span>
+</div>
+
+</body>
+</html>

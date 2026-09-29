@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Connexion — Bailtech</title>
+</head>
+
+<body class="min-h-screen bg-blue-900 flex items-center justify-center px-4 py-10">
+
+<!--
+    Page de connexion.
+
+    Elle n'est pas produite par l'export Figma comme les autres : elle n'a pas
+    de jumeau dans la maquette, puisqu'aucun écran n'y figurait. Elle reprend
+    donc la palette de l'application (bleu nuit, accents émeraude) pour que la
+    rupture soit la moins perceptible possible.
+
+    Le formulaire porte method="post" et non th:method : c'est une action vers
+    le filtre d'authentification, pas vers un contrôleur, et le jeton CSRF
+    doit y figurer. Thymeleaf l'injecte automatiquement dans tout formulaire
+    ayant une th:action ; ici l'action est statique, on ajoute donc le champ
+    explicitement.
+-->
+<main class="w-full max-w-md flex flex-col gap-8">
+
+    <div class="flex flex-col items-center gap-4 text-center">
+        <img th:src="@{/icons/logo_projetct.png}" alt="Bailtech" class="w-56 rounded-xl">
+        <p class="text-sm text-blue-200">
+            Gestion des contrats de bail — République de Madagascar
+        </p>
+    </div>
+
+    <div class="flex flex-col gap-6 bg-white p-8 rounded-2xl shadow-xl">
+        <div class="flex flex-col">
+            <h1 class="text-2xl font-bold text-gray-900">Connexion</h1>
+            <p class="text-sm text-gray-500">
+                Identifiez-vous avec votre numéro de CIN et votre mot de passe.
+            </p>
+        </div>
+
+        <!-- Messages de Spring Security : les deux causes les plus fréquentes. -->
+        <div th:if="${param.erreur}" role="alert"
+             class="flex items-start gap-3 bg-red-50 border border-solid border-red-200 px-4 py-3 rounded-xl">
+            <img th:src="@{/icons/information.png}" alt="" class="w-5 h-5 shrink-0">
+            <span class="text-sm text-red-700">
+                CIN ou mot de passe incorrect. Si le problème persiste, votre compte
+                n'a peut-être pas encore de mot de passe défini.
+            </span>
+        </div>
+
+        <div th:if="${param.deconnexion}" role="status"
+             class="flex items-start gap-3 bg-emerald-50 border border-solid border-emerald-200 px-4 py-3 rounded-xl">
+            <img th:src="@{/icons/information.png}" alt="" class="w-5 h-5 shrink-0">
+            <span class="text-sm text-emerald-800">Vous êtes déconnecté.</span>
+        </div>
+
+        <form th:action="@{/connexion}" method="post" class="flex flex-col gap-5">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="flex flex-col gap-2">
+                <label for="cin" class="text-sm font-semibold text-slate-700">
+                    Numéro de CIN
+                </label>
+                <input type="text" id="cin" name="cin" required
+                       inputmode="numeric" maxlength="19" autocomplete="username"
+                       placeholder="123 456 789 012"
+                       class="bg-slate-50 px-4 py-3 rounded-xl border border-solid border-slate-200 text-base text-slate-800 outline-none focus:border-blue-900">
+                <p class="text-xs text-slate-400">
+                    12 chiffres. Les espaces sont ignorés.
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="motDePasse" class="text-sm font-semibold text-slate-700">
+                    Mot de passe
+                </label>
+                <input type="password" id="motDePasse" name="motDePasse" required
+                       autocomplete="current-password"
+                       class="bg-slate-50 px-4 py-3 rounded-xl border border-solid border-slate-200 text-base text-slate-800 outline-none focus:border-blue-900">
+            </div>
+
+            <button type="submit"
+                    class="flex items-center justify-center gap-2 bg-blue-900 px-6 py-3 rounded-xl">
+                <span class="text-base font-semibold text-white">Se connecter</span>
+            </button>
+        </form>
+    </div>
+
+    <!--
+        Aide au développement uniquement. Le jeu de démonstration crée un
+        compte avec un mot de passe connu : l'afficher évite qu'un nouveau
+        développeur doive fouiller la base pour se connecter. Le bloc disparaît
+        dès que bailtech.demo=false.
+    -->
+    <div th:if="${@environment.getProperty('bailtech.demo') == 'true'}"
+         class="flex flex-col gap-2 bg-blue-800 border border-solid border-blue-700 px-5 py-4 rounded-xl">
+        <span class="text-xs font-bold uppercase tracking-wide text-blue-200">
+            Compte de démonstration
+        </span>
+        <span class="text-sm text-blue-100">
+            CIN <code class="font-mono">101234567890</code> — mot de passe
+            <code class="font-mono">Bailtech2026!</code>
+        </span>
+        <span class="text-xs text-blue-300">
+            Ce bloc n'apparaît que si <code class="font-mono">bailtech.demo=true</code>.
+        </span>
+    </div>
+</main>
+
+</body>
+
+</html>

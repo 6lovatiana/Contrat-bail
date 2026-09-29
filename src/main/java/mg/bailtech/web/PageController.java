@@ -17,8 +17,8 @@ import mg.bailtech.repository.ContratDeBailRepository;
 import mg.bailtech.repository.LogementRepository;
 import mg.bailtech.repository.PaiementLoyerRepository;
 import mg.bailtech.repository.UtilisateurRepository;
+import mg.bailtech.service.BailleurCourantService;
 import mg.bailtech.service.ContratService;
-import mg.bailtech.service.RegleMetierException;
 import mg.bailtech.web.dto.LigneCompteur;
 import mg.bailtech.web.dto.LigneContrat;
 import mg.bailtech.web.dto.LigneDossier;
@@ -51,17 +51,20 @@ public class PageController {
     private final LogementRepository logements;
     private final ContratDeBailRepository contrats;
     private final PaiementLoyerRepository paiements;
+    private final BailleurCourantService bailleurCourant;
 
     public PageController(ContratService contratService,
                           UtilisateurRepository utilisateurs,
                           LogementRepository logements,
                           ContratDeBailRepository contrats,
-                          PaiementLoyerRepository paiements) {
+                          PaiementLoyerRepository paiements,
+                          BailleurCourantService bailleurCourant) {
         this.contratService = contratService;
         this.utilisateurs = utilisateurs;
         this.logements = logements;
         this.contrats = contrats;
         this.paiements = paiements;
+        this.bailleurCourant = bailleurCourant;
     }
 
     // ==================================================================
@@ -69,8 +72,7 @@ public class PageController {
     // ==================================================================
 
     @GetMapping("/dashboard")
-    public String tableauDeBord(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                                @RequestParam(name = "q", required = false) String recherche,
+    public String tableauDeBord(@RequestParam(name = "q", required = false) String recherche,
                                 Model model) {
         // Valeurs par défaut : le gabarit reste rendu même sans bailleur résolu.
         LocalDate aujourdhui = LocalDate.now();
@@ -80,7 +82,7 @@ public class PageController {
         model.addAttribute("moisCourant",
                 aujourdhui.getMonth().getDisplayName(TextStyle.FULL, Locale.FRANCE) + " " + aujourdhui.getYear());
 
-        Utilisateur bailleur = bailleurInterne(bailleurId, model);
+        Utilisateur bailleur = bailleurInterne(model);
         if (bailleur == null) {
             return "dashboard/dashboard";
         }
@@ -114,8 +116,7 @@ public class PageController {
     // ==================================================================
 
     @GetMapping("/locataires")
-    public String dossiersLocataires(@RequestParam(name = "bailleurId", required = false) Integer bailleurId,
-                                     @RequestParam(name = "q", required = false) String recherche,
+    public String dossiersLocataires(@RequestParam(name = "q", required = false) String recherche,
                                      Model model) {
         model.addAttribute("dossiers", List.of());
         model.addAttribute("activites", List.of());
@@ -124,14 +125,16 @@ public class PageController {
         model.addAttribute("nbDossiersComplets", 0L);
         model.addAttribute("nbPiecesManquantes", 0L);
 
-        Utilisateur bailleur = bailleurInterne(bailleurId, model);
+        Utilisateur bailleur = bailleurInterne(model);
         if (bailleur == null) {
             return "documents/documents";
         }
 
+        // Locataires rattachés à un bien du bailleur, et non tous les
+        // locataires de la base : ces lignes exposent CIN, téléphone et email.
         List<Utilisateur> candidats = (recherche == null || recherche.isBlank())
-                ? utilisateurs.findLocataires()
-                : utilisateurs.rechercher(recherche.trim());
+                ? utilisateurs.findLocatairesDuParc(bailleur.getId())
+                : utilisateurs.rechercherLocatairesDuParc(bailleur.getId(), recherche.trim());
 
         List<LigneDossier> dossiers = candidats.stream()
                 .map(u -> new LigneDossier(
@@ -158,17 +161,17 @@ public class PageController {
     // ==================================================================
 
     /**
-     * Résout le bailleur courant. En cas de base vide, on rend quand même la page :
-     * {@code bailleur} vaut alors {@code null} et les listes sont initialisées à
-     * vide, ce qui laisse les gabarits afficher un état « aucune donnée » plutôt
-     * qu'une erreur 500.
+     * Résout le bailleur de la session. En cas de session absente ou expirée, on
+     * rend quand même la page : {@code bailleur} vaut alors {@code null} et les
+     * listes sont initialisées à vide, ce qui laisse les gabarits afficher un
+     * état « aucune donnée » plutôt qu'une erreur 500.
      */
-    private Utilisateur bailleurInterne(Integer bailleurId, Model model) {
+    private Utilisateur bailleurInterne(Model model) {
         try {
-            Utilisateur bailleur = contratService.utilisateurCourant(bailleurId);
+            Utilisateur bailleur = bailleurCourant.exigerBailleurConnecte();
             model.addAttribute("bailleur", bailleur);
             return bailleur;
-        } catch (RegleMetierException e) {
+        } catch (BailleurCourantService.UtilisateurIntrouvableException e) {
             model.addAttribute("bailleur", null);
             model.addAttribute("messageVide", e.getMessage());
             return null;
