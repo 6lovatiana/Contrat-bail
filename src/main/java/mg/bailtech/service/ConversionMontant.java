@@ -1,4 +1,4 @@
-﻿package mg.bailtech.service;
+package mg.bailtech.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -6,36 +6,37 @@ import java.math.RoundingMode;
 /**
  * Conversion d'un montant en Ariary en toutes lettres.
  * <p>
- * Exigence du MVP : le contrat doit porter le montant en chiffres <em>et</em> en
+ * Exigence du MVP : le contrat doit porter le montant en chiffres <em>et</em>
+ * en
  * toutes lettres (article 3). Implémentation sans dépendance externe.
  *
  * <h2>Règles de l'orthographe française appliquées</h2>
  * <ul>
- *   <li>« quatre-vingts » et non « quatre-vingt » (pluriel de 80) ;</li>
- *   <li>« quatre-vingt-dix », « soixante-dix », « dix-sept »… : les dizaines
- *       françaises se construisent sur une base 20 pour 70 et 90 ;</li>
- *   <li>« deux cents » avec un <em>s</em> seulement si rien ne suit
- *       (200 → deux cents, 201 → deux cent un) ;</li>
- *   <li>« mille » est invariable et ne se prépose jamais de « un »
- *       (1 000 → mille, 4 000 000 → quatre cent mille et non « quatre cents
- *       milles ») ;</li>
- *   <li>devant « million » et « milliard » en revanche le <em>s</em> de « cent »
- *       se maintient (200 000 000 → deux cents millions) ;</li>
- *   <li>« et » devant quatre et vingt : « quatre-vingt-quatre » s'écrit avec un
- *       trait d'union, « quatre et vingt » ne s'emploie que dans les dates.</li>
+ * <li>« quatre-vingts » et non « quatre-vingt » (pluriel de 80) ;</li>
+ * <li>« quatre-vingt-dix », « soixante-dix », « dix-sept »… : les dizaines
+ * françaises se construisent sur une base 20 pour 70 et 90 ;</li>
+ * <li>« deux cents » avec un <em>s</em> seulement si rien ne suit
+ * (200 → deux cents, 201 → deux cent un) ;</li>
+ * <li>« mille » est invariable et ne se prépose jamais de « un »
+ * (1 000 → mille, 4 000 000 → quatre cent mille et non « quatre cents
+ * milles ») ;</li>
+ * <li>devant « million » et « milliard » en revanche le <em>s</em> de « cent »
+ * se maintient (200 000 000 → deux cents millions) ;</li>
+ * <li>« et » devant quatre et vingt : « quatre-vingt-quatre » s'écrit avec un
+ * trait d'union, « quatre et vingt » ne s'emploie que dans les dates.</li>
  * </ul>
  */
 public final class ConversionMontant {
 
     private static final String[] UNITES = {
-        "", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
-        "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize",
-        "dix-sept", "dix-huit", "dix-neuf"
+            "", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
+            "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize",
+            "dix-sept", "dix-huit", "dix-neuf"
     };
 
     private static final String[] DIZAINES = {
-        "", "", "vingt", "trente", "quarante", "cinquante", "soixante",
-        "soixante", "quatre-vingt", "quatre-vingt"
+            "", "", "vingt", "trente", "quarante", "cinquante", "soixante",
+            "soixante", "quatre-vingt", "quatre-vingt"
     };
 
     private ConversionMontant() {
@@ -45,7 +46,8 @@ public final class ConversionMontant {
     /**
      * Convertit un montant en toutes lettres, en majuscule initiale.
      *
-     * @param montant montant à convertir ; {@code null} ou négatif est traité comme 0
+     * @param montant montant à convertir ; {@code null} ou négatif est traité comme
+     *                0
      * @return « Quatre cent mille Ariary », « Mille deux cent Ariary et cinquante
      *         centimes », …
      */
@@ -89,8 +91,8 @@ public final class ConversionMontant {
         StringBuilder texte = new StringBuilder();
 
         // milliards, puis millions : « deux milliards trois millions »
-        long[] paliers = {1_000_000_000L, 1_000_000L};
-        String[] noms = {"milliard", "million"};
+        long[] paliers = { 1_000_000_000L, 1_000_000L };
+        String[] noms = { "milliard", "million" };
         for (int i = 0; i < paliers.length; i++) {
             long valeur = nombre / paliers[i];
             if (valeur == 0) {
@@ -181,7 +183,6 @@ public final class ConversionMontant {
         // Les paliers supérieurs sont traités par entierEnLettres.
         return Long.toString(nombre);
     }
-
 
     private static String centimesEnLettres(int centimes) {
         String mot = centimes == 1 ? "centime" : "centimes";

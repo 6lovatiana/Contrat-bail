@@ -1,0 +1,5 @@
+Lancer
+powershell.exe -ExecutionPolicy Bypass -File .\script\compile.ps1
+
+Compilation sans lancement
+powershell.exe -ExecutionPolicy Bypass -File .\script\compile.ps1 -NoLaunch
