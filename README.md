@@ -34,9 +34,42 @@ démarrage de l'application (voir § 5).
 createdb contratbail
 psql -U postgres -d contratbail -f sql/240920260828-database_init.sql
 
-# 2. Lancer l'application
+# 2. Charger le jeu de données de test (optionnel mais recommandé)
+psql -U postgres -d contratbail -f sql/290920262100-donnee.sql
+
+# 3. Lancer l'application
 mvn spring-boot:run
 ```
+
+L'application écoute sur **http://localhost:1404**.
+
+### 2.1 Se connecter
+
+Toute URL ouvre sur la page de connexion : il n'existe plus de « bailleur par
+défaut » choisi par un paramètre d'URL. L'identifiant est le **numéro de CIN**,
+le mot de passe est celui du compte.
+
+| Rôle | CIN | Mot de passe | Arrivée après connexion |
+|---|---|---|---|
+| Bailleur (parc complet) | `101234567890` | `Bailtech2026!` | `/dashboard` |
+| Bailleur (2ᵉ parc) | `199000112233` | `Bailtech2026!` | `/dashboard` |
+| Bailleur (3ᵉ parc) | `188000445566` | `Bailtech2026!` | `/dashboard` |
+| Locataire | `201211334455` | `Bailtech2026!` | `/espace-locataire` |
+
+Les trois CIN de bailleur permettent de vérifier l'isolation entre parcs : un
+bailleur ne voit ni les contrats ni les PDF des deux autres.
+
+Un compte **locataire** s'authentifie réellement, mais il n'a pas d'écran de
+gestion : les écrans de gestion exigent `ROLE_BAILLEUR` et il est renvoyé vers
+`/espace-locataire`, qui explique ce qui sera livré. Il ne voit donc pas un
+tableau de bord vide présenté comme le sien.
+
+Le mot de passe est modifiable par la variable
+`BAILTECH_DEMO_MOT_DE_PASSE`. La valeur en clair n'est **jamais** stockée : la
+base ne contient que des empreintes BCrypt à sel variable.
+
+Ce bloc n'apparaît pas si `bailtech.demo=false` : en production, les comptes
+sont créés par une procédure d'administration, pas par le jeu de démonstration.
 
 Les variables d'environnement ci-dessous surcharge `application.properties` :
 
@@ -44,11 +77,12 @@ Les variables d'environnement ci-dessous surcharge `application.properties` :
 |---|---|---|
 | `DATABASE_URL` | `jdbc:postgresql://localhost:5432/contratbail` | URL JDBC |
 | `DATABASE_USERNAME` | `postgres` | utilisateur PostgreSQL |
-| `DATABASE_PASSWORD` | `1234` | mot de passe |
+| `DATABASE_PASSWORD` | *valeur de `application.properties`* | mot de passe PostgreSQL |
 | `SPRING_PROFILES_ACTIVE` | `dev` | profil Spring |
-| `THYMELEAF_PREFIX` | `file:./template/` | dossier des gabarits |
+| `THYMELEAF_PREFIX` | `classpath:/templates/` | dossier des gabarits |
 | `THYMELEAF_CACHE` | `false` | mise en cache des gabarits |
 | `BAILTECH_DEMO` | `true` | jeu de données de démonstration |
+| `BAILTECH_DEMO_MOT_DE_PASSE` | `Bailtech2026!` | mot de passe des comptes de démonstration |
 | `JPA_SHOW_SQL` | `false` | affichage des requêtes SQL |
 | `BAILTECH_BCRYPT_COUT` | `12` | coût du hachage BCrypt |
 | `BAILTECH_COFFRE` | `./coffre-securise` | racine du coffre chiffré des pièces |
@@ -64,12 +98,15 @@ Les variables d'environnement ci-dessous surcharge `application.properties` :
 
 | Route | Méthode | Gabarit / effet | Rôle |
 |---|---|---|---|
+| `/connexion` | GET | `connexion.html` | page de connexion (seule page publique) |
+| `/espace-locataire` | GET | `espace-locataire.html` | page d'attente d'un compte locataire, sans données |
+| `/deconnexion` | POST | redirection | ferme la session |
 | `/`, `/contrats/create` | GET | `contract/contract.html` | assistant de création (formulaire relié à la base) |
 | `/contrats/create-wizard` | GET | idem | alias de l'assistant (cahier des charges) |
-| `/contrats` | GET | `contract/contrats.html` | visionneuse : liste des contrats |
+| `/contrats` | GET | `contrat/contrats.html` | visionneuse : liste des contrats |
 | `/contrats` | POST | **PDF** | enregistre la saisie et télécharge le contrat |
 | `/enregistrer` | POST | **PDF** | idem, alias du cahier des charges |
-| `/contrats/{id}` | GET | `contract/contrat-fiche.html` | fiche du contrat et de son échéancier |
+| `/contrats/{id}` | GET | `contrat/contrat-fiche.html` | fiche du contrat et de son échéancier |
 | `/contrats/{id}/pdf` | GET | **PDF inline** | affichage dans le navigateur |
 | `/contrats/{id}/pdf/telecharger` | GET | **PDF joint** | téléchargement |
 | `/contrats/{id}/signature` | POST | redirection | le bail passe en `EN_COURS`, les échéances sont générées |
@@ -79,9 +116,13 @@ Les variables d'environnement ci-dessous surcharge `application.properties` :
 | `/jirama/calculer` | POST | `jirama/jirama.html` | **simulation** de la répartition, n'écrit rien |
 | `/jirama/appliquer` | POST | `jirama/jirama.html` | impute la part JIRAMA sur les échéances |
 
-Le paramètre `?q=` filtre la recherche sur le tableau de bord et les dossiers ;
-`?bailleurId=` et `?logementId=` sélectionnent un contexte (à remplacer par la
-session dès le module d'authentification).
+Le paramètre `?q=` filtre la recherche sur le tableau de bord et les dossiers.
+`?logementId=` sélectionne le compteur affiché par le calculateur JIRAMA ; il
+est recoupé avec le parc du bailleur avant d'être retenu.
+
+**`?bailleurId=` n'existe plus.** Le bailleur vient de la session, donc de la
+connexion : un identifiant transmis par l'URL était choisi par le visiteur, ce
+qui revenait à laisser n'importe qui se substituer à un autre propriétaire.
 
 ---
 
@@ -307,22 +348,56 @@ chiffres » est portée par la contrainte **`web.validation.CinNational`**, appl
 
 ## 5 bis. Sécurité des identités et des documents
 
-### 5.4 Hachage des mots de passe
+### 5.4 Authentification et contrôle d'accès
 
-`service.AuthentificationService` fournit le hachage et la vérification BCrypt,
-comme l'exige `Conception_base.md` (« empreinte du mot de passe haché (BCrypt) »).
+L'application est fermée par défaut : toute URL exige une session, à l'exception
+de `/connexion` et des ressources statiques. Le filtre est décrit dans
+`config.ConfigurationSecurite`.
 
 | Point | Choix et raison |
 |---|---|
-| Dépendance | `org.springframework.security:spring-security-crypto` **seule**. Contrairement à `spring-boot-starter-security`, ce module n'enclenche aucune auto-configuration, ne filtre aucune requête et n'exige aucun `UserDetailsService`. Ajouter le starter aurait fermé l'application sans qu'aucune page de connexion ne soit prête |
+| Dépendance | `org.springframework.boot:spring-boot-starter-security`. Le module `spring-security-crypto` seul (notre choix précédent) ne filtrait aucune requête : l'identité restait un paramètre d'URL. Le starter apporte le filtre, la session et les règles d'accès |
+| Identifiant | Le **numéro de CIN**, seule donnée d'identification unique du modèle v1 (contrainte d'unicité en base). L'email est saisi librement à l'inscription et ne peut donc pas servir d'identifiant de connexion |
+| Rôle | Déduit, jamais stocké : `ROLE_BAILLEUR` si l'utilisateur possède au moins un logement, sinon `ROLE_LOCATAIRE`. Même distinction que `findBailleurs()` / `findLocataires()`. Aucune colonne de rôle n'a été ajoutée au schéma. Le rôle **est appliqué** : les écrans de gestion exigent `ROLE_BAILLEUR` |
+| Arrivée après connexion | Calculée sur le rôle : `/dashboard` pour un bailleur, `/espace-locataire` pour un locataire. Envoyer tout le monde vers `/dashboard` était faux — un locataire aurait reçu un 403 immédiatement après une connexion réussie, ce qui ressemble à un mot de passe refusé |
+| Session | Serveur, invalidée à la déconnexion. Le bailleur est relu en base à chaque requête plutôt que mis en cache dans la session, pour qu'une session ne devienne pas une copie périmée d'une fiche |
+| CSRF | **Actif** sur tous les POST (signature de bail, création de contrat, déconnexion). Les formulaires portent le jeton rendu par Thymeleaf. C'est ce qui empêche un site tiers de forger une imputation JIRAMA ou une signature au nom du bailleur connecté |
+| En-têtes | `X-Frame-Options: DENY` : le document ne peut pas être inclus dans une iframe tierce (clickjacking) |
+| Énumération de comptes | CIN inconnue et mot de passe faux produisent la même erreur Spring : la page ne distingue pas les deux cas |
+
+**Deux couches, pas une.** La session prouve *qui* appelle ; elle ne prouve pas
+*sur quoi*. Le contrôle de propriété reste vérifié en base, à chaque accès :
+
+| Ressource | Contrôle |
+|---|---|
+| `GET /contrats/{id}/pdf` et `/telecharger` | contrat appartient au bailleur de la session, sinon **403** |
+| `GET /contrats/{id}` | idem, sinon redirection vers la liste avec message |
+| `POST /contrats/{id}/signature` | idem, via `ContratService.activer` |
+| `POST /jirama/appliquer` | chaque `contratId` du formulaire est confronté au parc avant **toute** écriture |
+| `GET /jirama?logementId=` | bien recoupé avec le parc du bailleur |
+| `GET /locataires` | limité aux locataires rattachés aux biens du bailleur |
+
+Le `contratId` transporté par un champ masqué n'est **pas** une autorisation :
+c'est un simple moyen de rattacher un index à une ligne. Le service le
+reconfronte systématiquement.
+
+### 5.5 Hachage des mots de passe
+
+`service.AuthentificationService` fournit le hachage et la vérification BCrypt,
+comme l'exige `Conception_base.md` (« empreinte du mot de passe haché (BCrypt) »).
+L'encodeur exposé par `ConfigurationSecurite` est celui qu'utilise
+`DaoAuthenticationProvider` : un seul algorithme, un seul coût.
+
+| Point | Choix et raison |
+|---|---|
 | Coût 12 | ~250 ms de hachage, le compromis habituel entre sécurité et temps de réponse d'une connexion. Configurable par `bailtech.securite.cout-bcrypt` |
 | Sel par mot de passe | Deux troubles de la même valeur n'ont pas la même empreinte : les tables de pré-calculs (rainbow tables) sont inopérantes |
-| Locataire créé par l'assistant | L'assistant enregistre un locataire, il ne lui ouvre pas d'accès et ne peut donc pas lui demander de choisir un mot de passe. L'empreinte posée est celle d'un **secret aléatoire** : elle n'ouvre rien, mais ce n'est plus une chaîne devinable en base (contre le placeholder `{compte-sans-authentification}` précédent) |
-| Jeu de démonstration | Les fiches de démo reçoivent l'empreinte BCrypt de `Bailtech2026!` ; la valeur en clair n'existe plus dans la base, seulement sous forme de hachage à sel variable |
+| Locataire créé par l'assistant | L'assistant enregistre un locataire, il ne lui ouvre pas d'accès et ne peut donc pas lui demander de choisir un mot de passe. L'empreinte posée est celle d'un **secret aléatoire** : elle n'ouvre rien, mais ce n'est plus une chaîne devinable en base |
+| Jeu de démonstration | Les fiches reçoivent l'empreinte BCrypt de `Bailtech2026!`, relue au démarrage si elle était absente. La valeur en clair n'existe pas en base |
 | Renouvellement | `changerMotDePasse(...)` vérifie l'ancien mot de passe avant d'écrire, et la longueur du nouveau est contrôlée avant tout contact avec la base |
 | Journalisation | Un mot de passe n'est ni journalisé ni renvoyé par l'API. `empreinteAudit(...)` produit une trace SHA-256 tronquée, non réversible, permettant de corréler deux échecs d'authentification |
 
-### 5.5 Coffre chiffré des pièces administratives
+### 5.6 Coffre chiffré des pièces administratives
 
 `service.StockageSecuriseService` chiffre les pièces du profil (CIN numérisée,
 justificatif de domicile) en **AES-256-GCM** avant qu'elles n'atteignent le disque.
@@ -373,33 +448,46 @@ jamais dans la liste déroulante.
 Les gabarits du site sont en mode `HTML` ; `contrat/contrat-pdf.html` est le seul
 en mode `XML`, réservé au moteur d'impression (voir § 4.1).
 
-### Jeu de démonstration
+### Jeu de données
 
-Au démarrage, si la table `utilisateur` est vide, `config.DonneesDemo` injecte
-4 utilisateurs, 4 logements, 4 contrats (dont un `EN_ATTENTE_SIGNATURE`) et
-6 échéances, afin que les listes `th:each` et les agrégats du tableau de bord
-aient des données. Les périodes générées ne redescendent jamais avant 2026-01,
-conformément à la contrainte SQL. Les mots de passe sont stockés sous forme
-d'empreintes BCrypt, jamais en clair (§ 5.4). Désactivation :
-`BAILTECH_DEMO=false`.
+Deux sources, à ne pas confondre :
+
+| Source | Quand | Contenu |
+|---|---|---|
+| `sql/290920262100-donnee.sql` | à la main, après le schéma | **Complet et documenté** : 3 bailleurs, 3 locataires, 6 logements, 6 contrats couvrant les 4 statuts, 12 échéances payées / partielles / en retard, les 3 modes de compteur JIRAMA |
+| `config.DonneesDemo` | au démarrage, si la table `utilisateur` est vide | **Filet de sécurité minimal** : 4 utilisateurs, 4 logements, 4 contrats, quelques échéances, calculées sur la date du jour |
+
+Le script SQL est la source de référence pour travailler : il est rejouable
+(il commence par un `TRUNCATE`) et se termine par un `DO` qui **refuse de
+valider** si un bailleur est aussi son propre locataire, si deux contrats
+`EN_COURS` se partagent un logement, si une échéance est antérieure à 2026, si
+une échéance `PAYE` n'a pas de date de règlement, ou si un mot de passe n'est
+pas une empreinte BCrypt.
+
+Les mots de passe sont stockés sous forme d'empreintes BCrypt, jamais en clair
+(§ 5.5). Désactivation du `DonneesDemo` : `BAILTECH_DEMO=false`.
 
 ---
 
 ## 7. Limites connues du MVP
 
-* **Authentification absente** : le hachage des mots de passe est en place
-  (§ 5.4) mais **aucune page de connexion n'existe**. Le bailleur courant est
-  déduit du premier propriétaire enregistré, ou du paramètre `?bailleurId=`.
-  `ContratService.utilisateurCourant(...)` est le point à remplacer par la
-  lecture de la session. `AuthentificationService.authentifier(cin, motDePasse)`
-  est prêt à être appelé par ce futur contrôleur.
+* **Pas d'écran locataire** : l'authentification est en place (§ 5.4) et un
+  locataire reçoit bien `ROLE_LOCATAIRE`, mais il n'a aucun gabarit à lui
+* **Pas d'écran locataire** : l'authentification est en place (§ 5.4) et un
+  locataire reçoit bien `ROLE_LOCATAIRE`, mais il n'a aucun écran qui lui soit
+  propre. Il est authentifié puis renvoyé vers `/espace-locataire`, une page
+  d'attente qui ne montre aucune donnée. C'est un rôle, pas encore un
+  produit.
+* **Rôles déduits, pas gérés** : le rôle vient du parc détenu, il n'y a ni
+  administration des comptes ni délégation. Un usager qui hérite d'un logement
+  devient bailleur sans décision explicite.
 * **Part JIRAMA confondue avec le loyer** : faute de table dédiée,
   `montant_attendu` porte « loyer + charges JIRAMA » pour les périodes calculées
   (§ 4.5). L'affectation est idempotente et le loyer seul reste déductible, mais
   une table `charge_jirama` serait le correctif structurel.
 * **Relevés JIRAMA non persistés** : les index saisis sont recalculables mais
   pas archivés. Un historique des factures imputées manque pour l'audit.
-* **Pas d'inventaire des pièces justificatives** : le coffre chiffré (§ 5.5) est
+* **Pas d'inventaire des pièces justificatives** : le coffre chiffré (§ 5.6) est
   opérationnel, mais le modèle v1 n'a **aucune table de pièces jointes** — les
   métadonnées (type, propriétaire, date de dépôt) n'ont pas d'endroit où être
   enregistrées, et aucun point de terminaison de téléversement n'est exposé. La

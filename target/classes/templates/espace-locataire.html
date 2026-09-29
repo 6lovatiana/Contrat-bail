@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Compte locataire — Bailtech</title>
+</head>
+
+<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
+
+<!--
+    Page atteinte par un compte locataire authentifié.
+
+    Elle est publique (permitAll) parce qu'elle est servie à un utilisateur
+    déjà connecté : la mettre derrière une règle d'accès la redirigerait vers
+    la page de connexion, qui le renverrait ici en boucle.
+
+    Elle assume un fait du produit plutôt que de le masquer : le module
+    locataire n'existe pas encore en v1. Un compte locataire peut se
+    connecter — l'authentification est réelle — mais il n'a aucun écran qui
+    lui soit propre. Le renvoyer silencieusement vers le tableau de bord des
+    propriétaires afficherait « Propriétaire » et un parc vide, ce qui serait
+    un mensonge. Mieux vaut dire ce qui manque.
+-->
+<main class="w-full max-w-lg flex flex-col items-center gap-6 text-center">
+    <img th:src="@{/icons/logo_projetct.png}" alt="Bailtech" class="w-40 rounded-xl">
+
+    <div class="flex flex-col gap-2">
+        <h1 class="text-2xl font-bold text-gray-900">Espace locataire</h1>
+        <p class="text-base text-gray-500">
+            Votre compte est actif, mais le module locataire n'est pas encore
+            ouvert dans Bailtech.
+        </p>
+    </div>
+
+    <div class="flex flex-col gap-2 self-stretch rounded-2xl border border-solid border-slate-200 bg-white p-6 text-left">
+        <p class="text-sm font-semibold text-slate-700">Ce qui vous sera proposé</p>
+        <ul class="flex flex-col gap-2 text-sm text-slate-600">
+            <li>la consultation de votre contrat de bail et de son échéancier&nbsp;;</li>
+            <li>le suivi de vos échéances de loyer et de charges JIRAMA&nbsp;;</li>
+            <li>le dépôt de vos pièces justificatives dans le coffre chiffré.</li>
+        </ul>
+        <p class="text-xs text-slate-400">
+            Ces écrans sont en cours de construction. En attendant, l'espace
+            bailleur reste réservé au propriétaire du bien.
+        </p>
+    </div>
+
+    <form th:action="@{/deconnexion}" method="post">
+        <button type="submit"
+                class="flex items-center justify-center rounded-xl border border-solid border-slate-200 bg-white px-5 py-2.5">
+            <span class="text-sm font-semibold text-slate-600">Se déconnecter</span>
+        </button>
+    </form>
+</main>
+
+</body>
+
+</html>

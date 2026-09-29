@@ -546,8 +546,7 @@ public class JiramaService {
             return montantApres;
         }
 
-        /** Montants formatés à la française, cf. {@link LigneCharge}. */
-        public String getPartJiramaLisible() {
+        /** Montants formatés à la française, cf. {@link LigneCharge}. */        public String getPartJiramaLisible() {
             return Format.montantEntier(partJirama);
         }
 

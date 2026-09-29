@@ -25,11 +25,17 @@ public class ContratPdfModel {
     private String bailleurProfession = "";
     private String bailleurAdresse = "";
     private String bailleurTelephone = "";
+    private String bailleurEmail = "";
+    /** Lieu de délivrance de la CIN — modèle article « Délivrée le … à ». */
+    private String bailleurCinLieu = "";
 
     private String locataireNom = "";
     private String locataireCin = "";
     private String locataireAdresse = "";
     private String locataireTelephone = "";
+    private String locataireEmail = "";
+    /** Lieu de délivrance de la CIN — modèle article « Délivrée le … à ». */
+    private String locataireCinLieu = "";
 
     private String bienType = "";
     private String bienAdresse = "";
@@ -49,8 +55,23 @@ public class ContratPdfModel {
     private String cautionMois = "";
     private String jourPaiement = "";
     private String dureePreavis = "";
+    private String dureePreavisNombre = "";
+    private String dureeBail = "";
     private String statut = "";
     private String statutCss = "";
+
+    /**
+     * Vrai lorsque le bien porte un compteur commun à répartir.
+     *
+     * <p>Le modèle distingue deux options à l'article 5 : si le locataire
+     * souscrit lui-même ses abonnements, rien n'est à répartir ; sinon la
+     * facture est répartie selon la règle inscrite sur la fiche du bien. Le
+     * gabarit a besoin de cette bascule pour n'afficher que l'option qui
+     * s'applique, plutôt que les deux — afficher « Option A » sur un
+     * compteur commun afficherait un engagement que les parties n'ont pas
+     * pris.
+     */
+    private boolean repartitionJirama;
 
     /**
      * Montant du loyer en toutes lettres. Non calculé à ce stade : la conversion
@@ -123,6 +144,38 @@ public class ContratPdfModel {
 
     public void setBailleurTelephone(String bailleurTelephone) {
         this.bailleurTelephone = bailleurTelephone;
+    }
+
+    public String getBailleurEmail() {
+        return bailleurEmail;
+    }
+
+    public void setBailleurEmail(String bailleurEmail) {
+        this.bailleurEmail = bailleurEmail;
+    }
+
+    public String getBailleurCinLieu() {
+        return bailleurCinLieu;
+    }
+
+    public void setBailleurCinLieu(String bailleurCinLieu) {
+        this.bailleurCinLieu = bailleurCinLieu;
+    }
+
+    public String getLocataireEmail() {
+        return locataireEmail;
+    }
+
+    public void setLocataireEmail(String locataireEmail) {
+        this.locataireEmail = locataireEmail;
+    }
+
+    public String getLocataireCinLieu() {
+        return locataireCinLieu;
+    }
+
+    public void setLocataireCinLieu(String locataireCinLieu) {
+        this.locataireCinLieu = locataireCinLieu;
     }
 
     public String getLocataireNom() {
@@ -291,6 +344,32 @@ public class ContratPdfModel {
 
     public void setDureePreavis(String dureePreavis) {
         this.dureePreavis = dureePreavis;
+    }
+
+    /** Préavis en toutes lettres : « trois (3) mois », forme du modèle. */
+    public String getDureePreavisNombre() {
+        return dureePreavisNombre;
+    }
+
+    public void setDureePreavisNombre(String dureePreavisNombre) {
+        this.dureePreavisNombre = dureePreavisNombre;
+    }
+
+    /** Durée totale du bail, en mois : « vingt-quatre (24) mois ». */
+    public String getDureeBail() {
+        return dureeBail;
+    }
+
+    public void setDureeBail(String dureeBail) {
+        this.dureeBail = dureeBail;
+    }
+
+    public boolean isRepartitionJirama() {
+        return repartitionJirama;
+    }
+
+    public void setRepartitionJirama(boolean repartitionJirama) {
+        this.repartitionJirama = repartitionJirama;
     }
 
     public String getStatut() {

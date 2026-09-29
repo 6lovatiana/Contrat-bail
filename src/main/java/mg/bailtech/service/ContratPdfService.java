@@ -2,6 +2,7 @@ package mg.bailtech.service;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -52,7 +53,15 @@ public class ContratPdfService {
     private static final Logger LOG = LoggerFactory.getLogger(ContratPdfService.class);
 
     private static final String GABARIT = "contrat/contrat-pdf";
-    private static final int NB_PAGES_ATTENDU = 2;
+    /**
+     * Nombre de pages du modèle de référence.
+     *
+     * <p>Trois depuis l'alignement sur {@code pdf/Contrat de Bail à Usage
+     * d'Habitation.pdf} : le contrat, puis les charges et obligations, puis la
+     * résiliation et les signatures. Un contrat de deux pages ne correspondrait
+     * plus au document remis au locataire.
+     */
+    private static final int NB_PAGES_ATTENDU = 3;
 
     private final SpringTemplateEngine moteurImpression;
     private final ContratDeBailRepository contrats;
@@ -174,6 +183,8 @@ public class ContratPdfService {
         modele.setBailleurProfession(bailleur.getProfession() == null ? "Non renseignée" : bailleur.getProfession());
         modele.setBailleurAdresse(bailleur.getAdresseActuelle());
         modele.setBailleurTelephone(bailleur.getTelephone());
+        modele.setBailleurEmail(bailleur.getEmail());
+        modele.setBailleurCinLieu(bailleur.getCinLieuDelivrance());
     }
 
     private void remplirLocataire(ContratPdfModel modele, Utilisateur locataire) {
@@ -184,6 +195,8 @@ public class ContratPdfService {
         modele.setLocataireCin(locataire.getCinNumero());
         modele.setLocataireAdresse(locataire.getAdresseActuelle());
         modele.setLocataireTelephone(locataire.getTelephone());
+        modele.setLocataireEmail(locataire.getEmail());
+        modele.setLocataireCinLieu(locataire.getCinLieuDelivrance());
     }
 
     private void remplirBien(ContratPdfModel modele, Logement logement) {
@@ -201,6 +214,11 @@ public class ContratPdfService {
                 ? "" : logement.getJiramaTypeGestion().getLibelle());
         modele.setBienMethodeRepartition(logement.getJiramaMethodeRepartition() == null
                 ? "" : logement.getJiramaMethodeRepartition());
+        // Article 5 du modèle : compteur commun = quote-part à régler auprès du
+        // bailleur. C'est exactement la condition qui déclenche une répartition
+        // dans le module JIRAMA.
+        modele.setRepartitionJirama(logement.getJiramaTypeGestion() != null
+                && logement.getJiramaTypeGestion().necessiteRepartition());
         modele.setBienCompteurElectricite(logement.getCompteurElectriciteNumero() == null
                 ? "" : logement.getCompteurElectriciteNumero());
         modele.setBienCompteurEau(logement.getCompteurEauNumero() == null
@@ -219,7 +237,18 @@ public class ContratPdfService {
         modele.setCaution(Format.montant(contrat.getMontantCautionMga()));
         modele.setCautionMois(contrat.getCautionEnMoisDeLoyer().toPlainString());
         modele.setJourPaiement(Format.jour(contrat.getJourPaiementMensuel()));
-        modele.setDureePreavis(contrat.getDureePreavisMois() + " mois");
+
+        // Le modèle écrit les durées en toutes lettres doublées du chiffre
+        // (« trois (3) mois ») : le chiffre seul est ambigu devant une
+        // signature, les lettres seules sont difficiles à comparer au contrat
+        // saisi. Les deux formes removes the doubt.
+        Integer preavis = contrat.getDureePreavisMois();
+        modele.setDureePreavis(preavis + " mois");
+        modele.setDureePreavisNombre(dureeEnLettres(preavis));
+
+        Integer dureeMois = dureeDuBailEnMois(contrat.getDateDebut(), contrat.getDateFin());
+        modele.setDureeBail(dureeEnLettres(dureeMois));
+
         modele.setStatut(contrat.getStatutActuel() == null ? "" : contrat.getStatutActuel().getLibelle());
         modele.setStatutCss(switch (contrat.getStatutActuel() == null ? "" : contrat.getStatutActuel().name()) {
             case "EN_COURS" -> "#065f46";
@@ -229,8 +258,44 @@ public class ContratPdfService {
         });
     }
 
-    private List<LigneEcheance> remplirEcheances(ContratDeBail contrat) {
-        return paiements.findByContratIdOrderByPeriodeAnneeDescPeriodeMoisDesc(contrat.getId())
+    // ==================================================================
+    // Durées en toutes lettres
+    // ==================================================================
+
+    /**
+     * Durée en toutes lettres doublée du chiffre, comme l'écrit le modèle
+     * (« trois (3) mois »).
+     *
+     * <p>Le chiffre seul est ambigu devant une signature — « six » se lit
+     * « six » mais « 6 » se conteste ; les lettres seules sont difficiles à
+     * rapprocher du formulaire de saisie. Les deux formes, ensemble, lèvent
+     * l'ambiguïté.
+     */
+    private static String dureeEnLettres(Integer nombre) {
+        if (nombre == null) {
+            return "Non renseignée";
+        }
+        return ConversionMontant.capitale(ConversionMontant.entierEnLettres(nombre))
+                + " (" + nombre + ")";
+    }
+
+    /**
+     * Durée totale du bail en mois, bornes comprises.
+     *
+     * <p>Le modèle annonce la durée du bail à l'article 2. Une durée exprimée
+     * en mois facilitates la comparaison avec le préavis, lui aussi en mois.
+     * {@code ChronoUnit} est préféré à un simple calcul sur l'année pour ne pas
+     * confondre « 12 mois » et « 1 an » lorsque le mois de fin diffère.
+     */
+    private static Integer dureeDuBailEnMois(LocalDate debut, LocalDate fin) {
+        if (debut == null || fin == null || fin.isBefore(debut)) {
+            return null;
+        }
+        long mois = ChronoUnit.MONTHS.between(debut.withDayOfMonth(1), fin.withDayOfMonth(1));
+        return (int) Math.max(0, mois);
+    }
+
+    private List<LigneEcheance> remplirEcheances(ContratDeBail contrat) {        return paiements.findByContratIdOrderByPeriodeAnneeDescPeriodeMoisDesc(contrat.getId())
                 .stream()
                 .map(this::ligne)
                 .toList();

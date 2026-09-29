@@ -10,12 +10,30 @@
         numériques pour les caractères spéciaux ;
       * le CSS est un sous-ensemble de CSS 2.1 : ni flexbox, ni grid, ni
         variables, ni police distante ;
-      * le document produit fait deux pages : le contrat (page 1), puis les
-        signatures et l'échéancier (page 2).
+      * le document produit fait trois pages, conformément au modèle de référence
+        pdf/Contrat de Bail à Usage d'Habitation.pdf : le contrat (pages 1 et 2),
+        puis les obligations, la résiliation et les signatures (page 3).
+
+    STRUCTURE ET RÔLE DE CHAQUE ARTICLE
+
+    La numérotation suit celle du modèle, qui place l'article 2 avant l'article
+    3 alors que la version précédente de ce gabarit ne comportait que sept
+    articles. Le modèle fait foi ; ne pas réordonner les articles « pour
+    raccourcir », sous peine de produire un document que ni le bailleur ni
+    l'officier ne reconnaîtraient.
+
+    Une nuance d'interprétation, à connaître avant de modifier ce fichier :
+    la page 2 du modèle est un scan sans couche texte, et son article 2
+    (« Durée du bail ») n'a pas pu être lu. Son titre et sa place sont
+    reconstitués d'après la numérotation et le texte de la page 1, qui annonce
+    la durée et le préavis. Le corps de l'article 2 ci-dessous est donc une
+    reconstruction fidèle à l'intention, non une transcription. Si l'équipe
+    dispose du texte exact, il doit remplacer celui-ci.
 
     Les accents sont écrits directement en UTF-8 : ils appartiennent au jeu
     Latin-1 utilisé par les polices PDF standard (Times, Helvetica), ce qui
-    évite tout embarquement de fichier de police.
+    évite tout embarquement de fichier de police. Aucun caractère hors Latin-1
+    (tiret cadratin, signe ©, ligature « œ ») ne doit être introduit ici.
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -29,28 +47,34 @@
 
         body {
             font-family: "Times New Roman", Times, serif;
-            font-size: 10pt;
-            line-height: 1.32;
+            font-size: 9.5pt;
+            line-height: 1.24;
             color: #000000;
         }
 
         h1 {
-            font-size: 14pt;
+            font-size: 13pt;
             text-align: center;
             text-decoration: underline;
             margin-top: 0;
             margin-bottom: 2pt;
         }
 
+        /*
+            L'interligne et les marges ont été resserrés après l'ajout des
+            articles 7 a 10 : a 10pt, la troisieme page debordait sur une
+            quatrieme. Le modele de reference tient en trois pages a cette
+            density ; la marge entre articles reste lisible.
+        */
         h2 {
-            font-size: 10pt;
-            margin: 9pt 0 3pt 0;
+            font-size: 9.5pt;
+            margin: 6pt 0 2pt 0;
             padding-bottom: 1pt;
             border-bottom: 1px solid #000000;
         }
 
         p {
-            margin: 0 0 4pt 0;
+            margin: 0 0 3pt 0;
             text-align: justify;
         }
 
@@ -76,9 +100,32 @@
             color: #444444;
         }
 
+        .rubrique {
+            font-weight: bold;
+        }
+
+        .liste {
+            margin: 1pt 0 3pt 0;
+        }
+
+        .liste td {
+            vertical-align: top;
+        }
+
+        .puce {
+            width: 6%;
+        }
+
+        .option {
+            font-size: 9.5pt;
+            font-style: italic;
+            color: #444444;
+            margin: 0 0 4pt 0;
+        }
+
         .signature {
             width: 46%;
-            height: 88pt;
+            height: 64pt;
             border: 1px dashed #444444;
             padding: 5pt;
             vertical-align: top;
@@ -94,7 +141,7 @@
             font-size: 8.5pt;
             color: #666666;
             text-align: center;
-            margin-top: 46pt;
+            margin-top: 28pt;
         }
 
         .separation {
@@ -126,7 +173,7 @@
             width: 52%;
             margin-left: 48%;
             border: 1px solid #000000;
-            padding: 7pt;
+            padding: 5pt;
         }
 
         .vise .legende {
@@ -136,8 +183,8 @@
         }
 
         .pied {
-            margin-top: 14pt;
-            padding-top: 4pt;
+            margin-top: 8pt;
+            padding-top: 3pt;
             border-top: 1px solid #cccccc;
             font-size: 8pt;
             color: #666666;
@@ -160,106 +207,94 @@
 
 <h2>ENTRE LES SOUSSIGNÉS</h2>
 
+<!--
+    Identification des parties.
+
+    Le modèle réserve un emplacement « Né(e) le / à » que le modèle physique ne
+    sait pas renseigner : le schéma v1 ne porte pas de date de naissance, et
+    l'inventer serait pire que de ne pas l'écrire. La ligne est donc omise, et
+    la date et le lieu de délivrance de la CIN — réellement connus — prennent
+    leur place. Si une date de naissance est ajoutée au modèle, c'est ici
+    qu'elle devra apparaître.
+-->
 <p>
-    Le premier soussigné, <strong th:text="${contrat.bailleurNom}">Nom du bailleur</strong>,
-    de profession <span th:text="${contrat.bailleurProfession}">Non renseignée</span>, titulaire de la
-    Carte d'Identité Nationale n&#176; <span th:text="${contrat.bailleurCin}">000000000000</span>,
+    <span class="rubrique">Le Propriétaire / Bailleur</span> :
+    <strong th:text="${contrat.bailleurNom}">Nom du bailleur</strong>,
+    de profession <span th:text="${contrat.bailleurProfession}">Non renseignée</span>,
     demeurant à <span th:text="${contrat.bailleurAdresse}">Adresse du bailleur</span>,
-    joignable au <span th:text="${contrat.bailleurTelephone}">000 00 000 00</span>, ci-après dénommé
-    <strong>le Bailleur</strong>, d'une part,
+    joignable au <span th:text="${contrat.bailleurTelephone}">000 00 000 00</span>,
+    titulaire de la Carte d'Identité Nationale n&#176; <span th:text="${contrat.bailleurCin}">000000000000</span>,
+    délivrée à <span th:text="${contrat.bailleurCinLieu}">Antananarivo</span>,
+    ci-après dénommé <strong>« LE BAILLEUR »</strong>, d'une part,
 </p>
 
 <p>
-    Le second soussigné, <strong th:text="${contrat.locataireNom}">Nom du locataire</strong>,
-    titulaire de la Carte d'Identité Nationale n&#176; <span th:text="${contrat.locataireCin}">000000000000</span>,
+    <span class="rubrique">Le Locataire</span> :
+    <strong th:text="${contrat.locataireNom}">Nom du locataire</strong>,
     demeurant à <span th:text="${contrat.locataireAdresse}">Adresse du locataire</span>,
-    joignable au <span th:text="${contrat.locataireTelephone}">000 00 000 00</span>, ci-après dénommé
-    <strong>le Locataire</strong>, d'autre part,
+    joignable au <span th:text="${contrat.locataireTelephone}">000 00 000 00</span>,
+    titulaire de la Carte d'Identité Nationale n&#176; <span th:text="${contrat.locataireCin}">000000000000</span>,
+    délivrée à <span th:text="${contrat.locataireCinLieu}">Antananarivo</span>,
+    ci-après dénommé <strong>« LE LOCATAIRE »</strong>, d'autre part.
 </p>
 
 <p class="mention-legale">
     Les parties déclarent disposer de la pleine capacité juridique, agir en leur propre
     nom et pour leur propre compte, et disposer de la qualité requise pour consentir
-    librement au présent contrat.
+    librement au présent contrat. Elles ont convenu d'un commun accord d'arrêter le
+    présent contrat conformément aux lois et réglementations applicables en République
+    de Madagascar.
 </p>
 
-<h2>ARTICLE 1 : OBJET DU CONTRAT</h2>
+<h2>ARTICLE 1 : OBJET ET DÉSIGNATION DU BIEN</h2>
 <p>
-    Le présent contrat a pour objet la location d'un bien immobilier de type
-    <span th:text="${contrat.bienType}">appartement</span>, composé de
-    <span th:text="${contrat.bienPieces}">3 pièces principales</span>, situé au
-    <span th:text="${contrat.bienAdresse}">Lot 00</span>, quartier
-    <span th:text="${contrat.bienQuartier}">Quartier</span>, ville de
+    Le BAILLEUR donne à bail au LOCATAIRE, qui l'accepte aux conditions définies
+    ci-après, les locaux à usage exclusif d'habitation situés à :
+    <strong><span th:text="${contrat.bienAdresse}">Lot 00</span>,
+    <span th:text="${contrat.bienQuartier}">Quartier</span>,
+    <span th:text="${contrat.bienVille}">Ville</span></strong>.
+</p>
+<p>
+    <span class="rubrique">Adresse exacte</span> :
+    <span th:text="${contrat.bienAdresse}">Lot 00</span>,
+    <span th:text="${contrat.bienQuartier}">Quartier</span>,
     <span th:text="${contrat.bienVille}">Ville</span>.
 </p>
 <p>
-    Description du bien : <span th:text="${contrat.bienDescription}">Non renseignée</span>.
+    <span class="rubrique">Consistance des locaux</span> :
+    <span th:text="${contrat.bienDescription}">Non renseignée</span>.
 </p>
 <p>
-    Le locataire déclare bien connaître les lieux pour les avoir visités et déclare les
-    prendre dans leur état actuel, sans réclamation ultérieure.
+    Le bien est de type <span th:text="${contrat.bienType}">appartement</span>,
+    composé de <span th:text="${contrat.bienPieces}">3 pièces principales</span>.
+    Le locataire déclare bien connaître les lieux pour les avoir visités et déclare
+    les prendre dans leur état actuel, sans réclamation ultérieure.
 </p>
 <p>
-    Le bien est loué meublé ou non meublé selon l'inventaire annexé, le cas échéant. Tout
-    changement d'affectation est soumis à l'accord écrit du bailleur.
+    Le bien est loué meublé ou non meublé selon l'inventaire annexé, le cas échéant.
+    Tout changement d'affectation est soumis à l'accord écrit du bailleur.
 </p>
 
-<h2>ARTICLE 2 : DURÉE ET PRÉAVIS</h2>
+<h2>ARTICLE 2 : DURÉE DU BAIL</h2>
+<!--
+    Article 2 reconstitué. Voir l'avertissement en tête de fichier : la page du
+    modèle qui le contient est un scan sans couche texte.
+-->
 <p>
-    Le bail est consenti pour une durée déterminée, du <span th:text="${contrat.dateDebut}">01/01/2026</span>
-    au <span th:text="${contrat.dateFin}">31/12/2026</span> inclus.
+    Le bail est consenti pour une durée déterminée de
+    <strong th:text="${contrat.dureeBail}">vingt-quatre (24) mois</strong>,
+    du <span th:text="${contrat.dateDebut}">01/01/2026</span> au
+    <span th:text="${contrat.dateFin}">31/12/2026</span> inclus.
 </p>
 <p>
-    Sauf stipulation contraire, la durée du préavis est fixée à
-    <span th:text="${contrat.dureePreavis}">3 mois</span> pour les deux parties, par lettre
-    recommandée avec accusé de réception, ou par tout autre moyen portant preuve de sa
-    date de réception.
+    À l'issue de ce terme, le contrat ne se renouvelle pas de plein droit :
+    son maintien suppose un accord exprès des deux parties, conformément aux
+    dispositions légales applicables.
 </p>
 <p>
     Le locataire bénéficie d'un nouveau contrat dans les conditions prévues par la
-    réglementation en vigueur, sans que la présente clause constitue une obligation de
-    renouvellement au bénéfice du bailleur.
-</p>
-
-<h2>ARTICLE 3 : LOYER ET CHARGES</h2>
-<p>
-    Le loyer mensuel est fixé à la somme de
-    <strong><span th:text="${contrat.loyer}">0,00</span> Ariary</strong>, payable d'avance et
-    au plus tard avant le <strong><span th:text="${contrat.jourPaiement}">05</span></strong> de
-    chaque mois.
-</p>
-<p>
-    Arrêté à la somme de <em><span th:text="${contrat.loyerEnLettres}">montant du loyer en toutes lettres</span></em>.
-</p>
-<p>
-    Les charges JIRAMA relatives à l'eau et à l'électricité sont à la charge exclusive du
-    locataire, selon le mode de comptage retenu :
-    <strong th:text="${contrat.bienModeComptage}">Compteur unique</strong>. Compteur électricité
-    n&#176; <span th:text="${contrat.bienCompteurElectricite}">0000</span>, compteur eau
-    n&#176; <span th:text="${contrat.bienCompteurEau}">0000</span>.
-</p>
-<p th:if="${contrat.bienMethodeRepartition != ''}">
-    Règle de répartition des charges : <span th:text="${contrat.bienMethodeRepartition}">Règle de répartition</span>.
-</p>
-<p th:if="${contrat.bienMethodeRepartition == ''}">
-    La consommation relevée sur le compteur principal est imputée en totalité au locataire.
-</p>
-<p>
-    Toute révision du loyer ne peut intervenir que par avenant écrit, dans le respect de
-    la législation en vigueur.
-</p>
-
-<h2>ARTICLE 4 : DÉPÔT DE GARANTIE (CAUTION)</h2>
-<p>
-    À titre de garantie, le locataire verse ce jour une somme correspondant à
-    <span th:text="${contrat.cautionMois}">2</span> mois de loyer, soit la somme de
-    <strong><span th:text="${contrat.caution}">0,00</span> Ariary</strong>.
-</p>
-<p>
-    Cette somme est consignée auprès du bailleur contre quittance, ou auprès d'un
-    établissement bancaire. Elle sera restituée au locataire à la sortie du bien, après
-    déduction des éventuels impayés, des frais de réparations et des charges non
-    honorées. Le locataire ne peut opposer aucune retenue de son propre chef.
+    réglementation en vigueur, sans que la présente clause constitue une obligation
+    de renouvellement au bénéfice du bailleur.
 </p>
 
 <div class="saut-page"></div>
@@ -271,38 +306,107 @@
     suite du contrat
 </div>
 
-<h2>ARTICLE 5 : OBLIGATIONS DU LOCATAIRE</h2>
-<p>Le locataire s'engage à :</p>
-<p>1. payer le loyer et les charges aux échéances fixées à l'article 3 ;</p>
-<p>2. occuper le bien personnellement et à titre de résidence, sans y exercer d'activité professionnelle, commerciale ou industrielle non autorisée ;</p>
-<p>3. ne consentir aucune sous-location, cession ou nantissement sans l'accord écrit préalable du bailleur ;</p>
-<p>4. entretenir les lieux en bon état et signaler sans délai toute dégradation ;</p>
-<p>5. respecter le règlement intérieur et les usages de voisinage.</p>
+<h2>ARTICLE 3 : LOYER ET CONDITIONS FINANCIÈRES</h2>
 <p>
-    Toute contravention donne lieu à mise en demeure dans les conditions de la loi et
-    peut, faute de régularisation dans le délai imparti, entraîner la résiliation de
-    plein droit aux torts et frais du locataire.
+    <span class="rubrique">Montant</span> : le loyer mensuel est fixé à la somme de
+    <strong><span th:text="${contrat.loyer}">0,00</span> Ariary (MGA)</strong>,
+    soit en toutes lettres <em th:text="${contrat.loyerEnLettres}">montant du loyer en toutes lettres</em>.
+</p>
+<p>
+    <span class="rubrique">Paiement</span> : le loyer est payable d'avance, au plus
+    tard le <strong><span th:text="${contrat.jourPaiement}">05</span></strong> de
+    chaque mois, entre les mains du BAILLEUR ou par virement. Un reçu écrit sera
+    systématiquement remis au LOCATAIRE.
+</p>
+<p>
+    <span class="rubrique">Révision</span> : le loyer pourra être révisé annuellement
+    d'un commun accord entre les deux parties lors du renouvellement du contrat.
+    Toute révision intervenant en cours de bail suppose un avenant écrit.
 </p>
 
-<h2>ARTICLE 6 : RÉSILIATION ET EXPULSION</h2>
+<h2>ARTICLE 4 : DÉPÔT DE GARANTIE (CAUTION)</h2>
 <p>
-    En cas de manquement grave du locataire, le bailleur peut agir en desistement de
-    la location, après mise en demeure restée infructueuse pendant le délai
-    réglementaire, le tout sans préjudice des dommages et intérêts qui seraient dus.
+    À la signature du présent contrat, le LOCATAIRE verse au BAILLEUR la somme de
+    <strong><span th:text="${contrat.caution}">0,00</span> Ariary (MGA)</strong>,
+    correspondant à <span th:text="${contrat.cautionMois}">2</span> mois de loyer,
+    à titre de dépôt de garantie.
 </p>
 <p>
-    Le locataire ne peut invoquer un cas de force majeure qu'en justifiant
-    l'empêchement, l'absence de toute possibilité de remède et l'absence de toute
-    faute de sa part.
+    Cette somme, non productive d'intérêts, ne peut en aucun cas remplacer un mois
+    de loyer. Elle sera restituée au LOCATAIRE dans un délai maximum de trente (30)
+    jours après son départ définitif, déduction faite des éventuelles dégradations
+    constatées lors de l'état des lieux de sortie et des factures impayées. Le
+    LOCATAIRE ne peut opposer aucune retenue de son propre chef.
 </p>
 
-<h2>ARTICLE 7 : ÉTAT DES LIEUX ET INVENTAIRE</h2>
+<h2>ARTICLE 5 : CHARGES ET ABONNEMENTS (JIRAMA)</h2>
 <p>
-    Un état des lieux contradictoire est dressé à l'entrée et à la sortie du locataire,
-    en présence des deux parties ou de leurs représentants. L'inventaire du mobilier,
-    le cas échéant, y est annexé et signé par elles.
+    Les consommations personnelles d'eau et d'électricité (JIRAMA) ainsi que les
+    taxes locales liées à l'occupation (ex : ordures ménagères) sont à la charge
+    exclusive du LOCATAIRE, selon le mode de comptage retenu pour le bien :
+    <strong th:text="${contrat.bienModeComptage}">Compteur unique</strong>.
+    Compteur électricité n&#176; <span th:text="${contrat.bienCompteurElectricite}">0000</span>,
+    compteur eau n&#176; <span th:text="${contrat.bienCompteurEau}">0000</span>.
 </p>
+
+<!--
+    Le modèle présente deux options et n'en retient qu'une selon le bien.
+
+    Afficher les deux laisserait à l'occupant un engagement qu'il n'a pas pris :
+    sur un compteur unique, il n'a rien à répartir et n'a rien à rembourser au
+    bailleur. La bascule vient de ContratPdfService, qui s'appuie sur
+    Logement.getJiramaTypeGestion().necessiteRepartition() — la même condition
+    que celle qui déclenche une répartition dans le calculateur JIRAMA. Les deux
+    documents ne peuvent donc pas se contredire.
+-->
+<p th:unless="${contrat.repartitionJirama}" class="option">
+    Option A : le LOCATAIRE souscrit ses propres abonnements. Aucun compteurs
+    n'est partagé et aucune répartition n'intervient.
+</p>
+<p th:if="${contrat.repartitionJirama}" class="option">
+    Option B : le logement partage un compteur commun. Les charges seront réparties
+    selon la méthode suivante :
+    <span th:text="${contrat.bienMethodeRepartition}">Règle de répartition</span>.
+    Le LOCATAIRE s'engage à régler sa quote-part au BAILLEUR dès réception de la
+    facture.
+</p>
+
+<h2>ARTICLE 6 : OBLIGATIONS DU LOCATAIRE</h2>
+<p>Le LOCATAIRE s'engage expressément à :</p>
+<table class="liste">
+    <tr>
+        <td class="puce">1.</td>
+        <td>Payer le loyer et les charges aux échéances convenues.</td>
+    </tr>
+    <tr>
+        <td class="puce">2.</td>
+        <td>
+            Utiliser les locaux paisiblement et exclusivement pour l'habitation
+            (interdiction d'y exercer une activité commerciale ou professionnelle
+            sans accord écrit).
+        </td>
+    </tr>
+    <tr>
+        <td class="puce">3.</td>
+        <td>
+            Maintenir les lieux en bon état d'entretien courant et effectuer à ses
+            frais les menues réparations locatives.
+        </td>
+    </tr>
+    <tr>
+        <td class="puce">4.</td>
+        <td>
+            Signaler sans délai au BAILLEUR toute dégradation et supporter les
+            grosses réparations structurelles incombant au propriétaire.
+        </td>
+    </tr>
+</table>
+
+<h2>ÉTAT DES LIEUX ET INVENTAIRE</h2>
 <p>
+    Un état des lieux contradictoire est dressé à l'entrée et à la sortie du
+    locataire, en présence des deux parties ou de leurs représentants.
+    L'inventaire du mobilier, le cas échéant, y est annexé et signé par elles.
     Les index de départ relevés à l'état des lieux d'entrée sont : électricité
     <span th:text="${contrat.bienCompteurElectricite}">0000</span>, eau
     <span th:text="${contrat.bienCompteurEau}">0000</span>. Le gemissement tient un
@@ -311,8 +415,9 @@
 
 <h2>ANNEXE : ÉCHÉANCIER DU LOYER</h2>
 <p th:if="${#lists.isEmpty(contrat.echeances)}" class="mention-legale">
-    Aucune échéance n'a encore été générée : le contrat n'est pas enregistré dans le
-    statut EN_COURS. L'échéancier est produit automatiquement dès la signature du bail.
+    Aucune échéance n'a encore été générée : le contrat n'est pas enregistré dans
+    le statut EN_COURS. L'échéancier est produit automatiquement dès la signature
+    du bail.
 </p>
 <table class="echeancier" th:unless="${#lists.isEmpty(contrat.echeances)}">
     <tr>
@@ -330,11 +435,84 @@
     </tr>
 </table>
 
+<div class="saut-page"></div>
+
+<!-- ============================= PAGE 3 ============================= -->
+<div class="entete">
+    Plateforme <span th:text="${appareil}">Bailtech</span> &#183;
+    référence <span th:text="${contrat.reference}">N&#176; 1/2026</span> &#183;
+    suite du contrat
+</div>
+
+<h2>ARTICLE 7 : OBLIGATIONS DU BAILLEUR</h2>
+<p>Le BAILLEUR s'engage à :</p>
+<table class="liste">
+    <tr>
+        <td class="puce">1.</td>
+        <td>
+            Délivrer au LOCATAIRE un logement décent, en bon état de réparations de
+            toutes natures et propre à l'usage d'habitation.
+        </td>
+    </tr>
+    <tr>
+        <td class="puce">2.</td>
+        <td>
+            Assurer au LOCATAIRE la jouissance paisible des lieux pendant toute la
+            durée du bail.
+        </td>
+    </tr>
+    <tr>
+        <td class="puce">3.</td>
+        <td>
+            Prendre à sa charge exclusive les grosses réparations structurelles
+            (toiture, murs porteurs, vétusté majeure des installations d'eau et
+            d'électricité).
+        </td>
+    </tr>
+</table>
+
+<h2>ARTICLE 8 : RÉSILIATION ANTICIPÉE</h2>
+<p>
+    <span class="rubrique">Par le Locataire</span> : le LOCATAIRE peut résilier le
+    présent bail à tout moment moyennant un préavis écrit de
+    <strong th:text="${contrat.dureePreavisNombre}">trois (3) mois</strong>
+    notifié au BAILLEUR. Le loyer reste dû pendant toute la durée du préavis.
+</p>
+<p>
+    <span class="rubrique">Par le Bailleur</span> : le BAILLEUR ne pourra donner
+    congé au LOCATAIRE avant le terme que pour un motif légitime et sérieux
+    (non-exécution d'une obligation contractuelle par le locataire, reprise du
+    logement pour y habiter lui-même ou sa famille proche, ou vente du bien),
+    moyennant un préavis écrit de
+    <strong th:text="${contrat.dureePreavisNombre}">trois (3) mois</strong>.
+</p>
+
+<h2>ARTICLE 9 : CLAUSE RÉSOLUTOIRE EN CAS D'IMPAYÉ</h2>
+<p>
+    À défaut de paiement d'un seul terme de loyer à son échéance exacte, ou en cas
+    d'inexécution de l'une des clauses du présent contrat, le bail sera résilié de
+    plein droit quinze (15) jours après une mise en demeure par lettre restée
+    infructueuse. Le LOCATAIRE devra alors évacuer immédiatement les lieux.
+</p>
+
+<h2>ARTICLE 10 : ÉLECTION DE DOMICILE ET JURIDICTION</h2>
+<p>Pour l'exécution des présentes, les parties font élection de domicile :</p>
+<p>Le BAILLEUR à son adresse mentionnée ci-dessus.</p>
+<p>Le LOCATAIRE dans les lieux loués.</p>
+<p>
+    En cas de litige concernant l'interprétation ou l'exécution du présent contrat,
+    les parties s'engagent à rechercher d'abord une solution amiable, notamment par
+    l'arbitrage des autorités locales du Fokontany. À défaut d'accord amiable, le
+    différend sera soumis au Tribunal civil compétent du lieu de situation de
+    l'immeuble.
+</p>
+
 <h2>SIGNATURES</h2>
 <p>
-    Fait en deux exemplaires originaux à <span th:text="${contrat.lieu}">ANTANANARIVO</span>, le
-    <span th:text="${contrat.dateEdition}">01/01/2026</span>, pour servir et valoir ce
-    que de droit.
+    Fait à <span th:text="${contrat.lieu}">ANTANANARIVO</span>, le
+    <span th:text="${contrat.dateEdition}">01/01/2026</span>, en trois (3)
+    exemplaires originaux (un pour le Bailleur, un pour le Locataire, et un pour
+    l'enregistrement), pour servir et valoir ce que de droit.
 </p>
 
 <table style="width: 100%; border: none;">
@@ -372,7 +550,7 @@
 </p>
 
 <div class="pied">
-    Contrat de bail à usage d'habitation &#183; page 2 sur 2 &#183; produit par
+    Contrat de bail à usage d'habitation &#183; produit par
     <span th:text="${appareil}">Bailtech</span>
 </div>
 

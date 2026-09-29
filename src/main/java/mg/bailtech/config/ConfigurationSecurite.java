@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
@@ -141,14 +142,29 @@ public class ConfigurationSecurite {
         http
                 .authorizeHttpRequests(autorisations -> autorisations
                         .requestMatchers("/css/**", "/icons/**", "/images/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/connexion", "/erreur").permitAll()
+                        // /espace-locataire est publique bien qu'elle ne soit
+                        // servie qu'à un utilisateur connecté : la mettre
+                        // derrière une règle d'accès la renverrait vers
+                        // /connexion, qui la renverrait ici, en boucle.
+                        .requestMatchers("/connexion", "/erreur", "/acces-refuse",
+                                         "/espace-locataire").permitAll()
+                        // Les écrans de gestion appartiennent au bailleur. Un
+                        // locataire s'authentifie sans être refusé à la
+                        // connexion, mais il n'a pas de parc à administrer :
+                        // sans cette règle, il atterrissait sur le tableau de
+                        // bord des propriétaires, qui le présentait comme un
+                        // « Propriétaire » avec un parc vide — une information
+                        // fausse, et non une simple page absente.
+                        .requestMatchers("/dashboard", "/contrats/**", "/jirama/**",
+                                         "/locataires", "/enregistrer")
+                            .hasRole("BAILLEUR")
                         .anyRequest().authenticated())
                 .formLogin(connexion -> connexion
                         .loginPage("/connexion")
                         .loginProcessingUrl("/connexion")
                         .usernameParameter("cin")
                         .passwordParameter("motDePasse")
-                        .defaultSuccessUrl("/dashboard", true)
+                        .successHandler(arriveeSelonRole())
                         .failureUrl("/connexion?erreur")
                         .permitAll())
                 .logout(deconnexion -> deconnexion
@@ -161,6 +177,24 @@ public class ConfigurationSecurite {
                         .frameOptions(frame -> frame.deny())
                         .contentTypeOptions(Customizer.withDefaults()));
         return http.build();
+    }
+
+    /**
+     * Redirige chaque role vers son ecran d'arrivee.
+     *
+     * <p>Envoyer tout le monde vers {@code /dashboard} etait simple et faux :
+     * un locataire s'authentifie avec succes puis recoit un 403, ce qui donne
+     * l'impression d'un mot de passe refuse alors qu'il est le bon. La
+     * destination est donc calculee sur le role, que
+     * {@link #authorities(Utilisateur)} vient d'attribuer.
+     */
+    @Bean
+    public AuthenticationSuccessHandler arriveeSelonRole() {
+        return (request, response, authentication) -> {
+            boolean bailleur = authentication.getAuthorities().stream()
+                    .anyMatch(a -> AUTHORITE_BAILLEUR.equals(a.getAuthority()));
+            response.sendRedirect(request.getContextPath() + (bailleur ? "/dashboard" : ESPACE_LOCATAIRE));
+        };
     }
 
     // ==================================================================
@@ -200,8 +234,19 @@ public class ConfigurationSecurite {
      * Rôle porté par un utilisateur possédant au moins un logement.
      *
      * <p>Les écrans de gestion (tableau de bord, contrats, JIRAMA, coffre-fort)
-     * sont réservés à ce rôle : un locataire authentifié ne voit que la page de
-     * connexion, faute d'écran qui lui soit propre en v1.
+     * sont réservés à ce rôle : un locataire authentifié est renvoyé vers
+     * {@code /espace-locataire}, faute d'écran qui lui soit propre en v1.
      */
     public static final String AUTHORITE_BAILLEUR = "ROLE_BAILLEUR";
+
+    /**
+     * Destination après connexion réussie, choisie selon le rôle.
+     *
+     * <p>Envoyer tout le monde vers {@code /dashboard} était simple et faux :
+     * un locataire s'authentifie avec succès puis reçoit un 403, ce qui donne
+     * l'impression d'un mot de passe refusé alors qu'il est le bon. La
+     * destination est donc calculée, et un locataire atterrit sur la page qui
+     * lui explique ce qui manque.
+     */
+    private static final String ESPACE_LOCATAIRE = "/espace-locataire";
 }

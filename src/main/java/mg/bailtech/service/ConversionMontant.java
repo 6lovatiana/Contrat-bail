@@ -208,6 +208,19 @@ public final class ConversionMontant {
     }
 
     /**
+     * Met une majuscule initiale à un texte déjà converti.
+     *
+     * <p>Exposé parce que le contrat écrit certaines durées en toutes lettres
+     * sans passer par {@link #enLettres} : le préavis et la durée du bail ne
+     * sont pas des montants, et leur conversion en lettres est obtenue par
+     * {@link #entierEnLettres}, qui rend en minuscules. La même capitalisation
+     * que celle appliquée aux montants est alors réappliquée par l'appelant.
+     */
+    public static String capitale(String texte) {
+        return majuscule(texte);
+    }
+
+    /**
      * Arrondi à l'ariary entier, l'unité monétaire étant indivisible en pratique
      * dans les écritures comptables malgaches.
      */
