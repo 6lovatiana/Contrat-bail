@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: entete('Tableau de bord')}">
+    <meta charset="UTF-8">
+    <title>Bailtech</title>
+</head>
+
+<body class="bg-gray-50">
+
+<div class="flex min-h-screen w-full flex-col lg:flex-row">
+
+    <div th:replace="~{fragments/layout :: menu('dashboard')}"></div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <header th:replace="~{fragments/layout :: en-tete('Tableau de bord')}"></header>
+
+        <!-- ================= Recherche ================= -->
+        <!--
+            Formulaire GET : il ne modifie rien, la protection CSRF ne s'y
+            applique pas. Le bailleurId n'y figure plus — la session le
+            désigne, l'ajouter ici reviendrait à rouvrir la faille que la
+            session vient de fermer.
+        -->
+        <div class="flex flex-col gap-4 self-stretch bg-white px-4 pb-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <form th:action="@{/dashboard}" method="get"
+                  class="flex w-full items-center rounded-xl border border-solid border-gray-100 bg-gray-50 px-4 py-2 sm:max-w-md">
+                <img th:src="@{/icons/information.png}" alt="" class="mr-3 h-4 w-4 opacity-60">
+                <input type="search" name="q" th:value="${recherche}"
+                       placeholder="Rechercher un locataire ou contrat..."
+                       class="w-full bg-transparent text-sm font-normal text-gray-800 outline-none placeholder:text-gray-400">
+            </form>
+        </div>
+
+        <div class="flex flex-1 flex-col gap-8 self-stretch p-4 sm:p-8">
+
+            <div th:if="${messageVide}" role="status"
+                 class="flex flex-col gap-1 self-stretch rounded-xl border border-solid border-amber-200 bg-amber-50 px-4 py-3">
+                <span class="text-sm font-semibold text-amber-900" th:text="${messageVide}">Aucun bailleur</span>
+            </div>
+
+            <div class="flex flex-col gap-4 self-stretch lg:flex-row lg:items-end lg:justify-between">
+                <div class="flex flex-col">
+                    <div class="flex flex-col self-stretch">
+                        <span class="text-2xl font-bold text-gray-900"
+                              th:text="|Manao ahoana, ${synthese?.salutation ?: 'Bailleur'}|">Manao ahoana, Razafindrakoto</span>
+                    </div>
+                    <div class="flex flex-col self-stretch">
+                        <span class="font-normal text-base text-gray-500">
+                            Voici l'état actuel de votre parc immobilier aujourd'hui.
+                        </span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4">
+                    <a th:href="@{/jirama}"
+                       class="flex items-center gap-2 rounded-xl border border-solid border-gray-200 bg-white px-5 py-2.5">
+                        <img th:src="@{/icons/ampoule.png}" alt="" class="h-4 w-4">
+                        <span class="text-base font-semibold text-center text-blue-900">Calculer JIRAMA</span>
+                    </a>
+                    <a th:href="@{/contrats/create}"
+                       class="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-[11px]">
+                        <span class="text-base font-semibold text-center text-white">Nouveau contrat</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ================= Indicateurs ================= -->
+            <!--
+                Les trois cartes étaient en w-[346px] fixe, soit 1040px à elles
+                trois : le bloc débordait dès que la fenêtre était plus étroite.
+                flex-1 les rend proportionnelles au lieu de fixées.
+            -->
+            <div class="flex flex-col self-stretch gap-6 md:flex-row">
+
+                <div class="flex flex-1 flex-col gap-1 rounded-2xl border border-solid border-gray-100 bg-white p-6">
+                    <div class="flex justify-between items-center self-stretch">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+                            <img th:src="@{/icons/immobilier.png}" alt="" class="h-5 w-5">
+                        </div>
+                        <div class="flex flex-col rounded-lg bg-emerald-50 px-2 py-1">
+                            <span class="text-sm font-medium text-emerald-700"
+                                  th:text="|${synthese?.contratsActifs ?: 0} bail(s) actif(s)|">0 bail(s)</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col self-stretch pt-3">
+                        <span class="text-sm font-medium text-gray-500">Total des loyers actifs (MGA)</span>
+                    </div>
+                    <!--
+                        L'unité est dans le même élément que le montant, et
+                        non dans un élément voisin : deux éléments de texte
+                        adjacents séparés par un simple retour à la ligne se
+                        rejoignent sans espace, le HTML réduisant les blancs en
+                        bordure d'élément. « 2 650 000Ar ». Une entité insécable
+                        rend l'espace insécable.
+                    -->
+                    <div class="flex items-end self-stretch">
+                        <span class="text-3xl font-bold text-gray-900"
+                              th:text="|${synthese?.totalLoyers ?: 0}&nbsp;Ar|">0 Ar</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-1 flex-col gap-1 rounded-2xl border border-solid border-gray-100 bg-white p-6">
+                    <div class="flex items-center self-stretch">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
+                            <img th:src="@{/icons/contracter.png}" alt="" class="h-5 w-5">
+                        </div>
+                    </div>
+                    <div class="flex flex-col self-stretch pt-3">
+                        <span class="text-sm font-medium text-gray-500">Biens enregistrés</span>
+                    </div>
+                    <div class="flex items-end self-stretch">
+                        <span class="text-3xl font-bold text-gray-900"
+                              th:text="|${synthese?.nombreLogements ?: 0}&nbsp;unités|">0 unités</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-1 flex-col gap-1 rounded-2xl border border-solid border-gray-100 bg-white p-6">
+                    <div class="flex items-center self-stretch">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50">
+                            <img th:src="@{/icons/paiements.png}" alt="" class="h-5 w-5">
+                        </div>
+                    </div>
+                    <div class="flex flex-col self-stretch pt-3">
+                        <span class="text-sm font-medium text-gray-500">Échéances non soldées</span>
+                    </div>
+                    <div class="flex flex-col items-start self-stretch">
+                        <div class="flex items-end self-stretch">
+                            <span class="text-3xl font-bold text-gray-900"
+                                  th:text="${synthese?.paiementsEnRetard ?: 0}">0</span>
+                        </div>
+                        <!--
+                            Séparé de la carte précédente : l'export plaçait
+                            deux attributs th:text sur un même élément, dont un
+                            seul survivait au rendu. Le montant en retard est
+                            désormais son propre texte.
+                        -->
+                        <span class="text-sm font-semibold text-gray-500"
+                              th:text="|${synthese?.montantEnRetard ?: 0}&nbsp;Ar|">0 Ar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= Contrats récents + JIRAMA ================= -->
+            <div class="flex flex-col self-stretch gap-6 xl:flex-row">
+
+                <div class="flex flex-1 flex-col overflow-hidden rounded-2xl border border-solid border-gray-100 bg-white">
+                    <div class="flex justify-between items-center self-stretch border-solid border-gray-50 p-6">
+                        <div class="flex flex-col">
+                            <span class="text-base font-bold text-gray-900">Contrats récents</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-blue-900"
+                                  th:text="|(${nbResultats ?: 0} contrat(s))|">(0 contrat(s))</span>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(contratsRecents)}"
+                         class="flex flex-col items-center self-stretch p-10 text-center">
+                        <span class="text-sm font-medium text-gray-500">Aucun contrat à afficher.</span>
+                        <span th:if="${recherche != null and !recherche.isEmpty()}"
+                              class="text-xs font-normal text-gray-400">
+                            Aucun résultat pour «&nbsp;<span th:text="${recherche}"></span>&nbsp;».
+                        </span>
+                        <a th:href="@{/contrats/create}" class="mt-2 text-sm font-semibold text-blue-900">
+                            Créer un premier contrat
+                        </a>
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(contratsRecents)}" class="flex flex-col self-stretch">
+                        <!--
+                            Pas de largeur minimale ici, contrairement aux
+                            autres tableaux : cette carte partage sa largeur
+                            avec le panneau JIRAMA, et un min-width forçait la
+                            colonne « Statut » hors du champ visible — le
+                            statut d'un bail était donc illisible sans
+                            défilement horizontal. Les colonnes se partagent
+                            l'espace disponible et les libellés longs sont
+                            tronqués plutôt que de pousser le tableau.
+                        -->
+                        <div class="flex self-stretch bg-gray-50">
+                            <div class="flex flex-1 flex-col px-4 py-4">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Locataire</span>
+                            </div>
+                            <div class="flex flex-1 flex-col px-4 py-4">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Bien</span>
+                            </div>
+                            <div class="flex w-28 shrink-0 flex-col items-end px-4 py-4">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Loyer</span>
+                            </div>
+                            <div class="flex w-24 shrink-0 flex-col px-4 py-4">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Statut</span>
+                            </div>
+                        </div>
+
+                        <div th:each="contrat : ${contratsRecents}"
+                             class="flex items-center self-stretch border-t border-solid border-gray-50">
+                            <div class="flex flex-1 flex-col px-4 py-4">
+                                <a th:href="@{/contrats/{id}(id=${contrat.id})}"
+                                   class="truncate text-sm font-medium text-gray-900 hover:underline"
+                                   th:text="${contrat.locataire}" th:title="${contrat.locataire}">Sahondra R.</a>
+                            </div>
+                            <div class="flex flex-1 flex-col px-4 py-4">
+                                <span class="truncate text-sm font-medium text-gray-600"
+                                      th:text="${contrat.bien}" th:title="${contrat.bien}">Appartement T3</span>
+                            </div>
+                            <div class="flex w-28 shrink-0 flex-col items-end px-4 py-4">
+                                <span class="whitespace-nowrap text-sm font-bold text-gray-900"
+                                      th:text="${contrat.loyer}">1.200.000 Ar</span>
+                            </div>
+                            <div class="flex w-24 shrink-0 flex-col px-4 py-4">
+                                <div class="flex self-start rounded-full px-3 py-[3.5px]"
+                                     th:classappend="${contrat.statutCss}">
+                                    <span class="text-xs font-semibold" th:text="${contrat.statut}">Actif</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--
+                    Synthèse JIRAMA.
+
+                    Aucune table de relevés n'existe en v1 : la répartition est
+                    portée par le module JIRAMA. L'export affichait ici des
+                    jauges vides ; elles sont remplacées par un renvoi clair.
+                -->
+                <div class="flex flex-1 flex-col overflow-hidden rounded-2xl border border-solid border-gray-100 bg-white">
+                    <div class="flex flex-col self-stretch border-solid border-gray-50 p-6">
+                        <div class="flex flex-col self-stretch">
+                            <span class="text-base font-bold text-gray-900">Consommation JIRAMA</span>
+                        </div>
+                        <div class="flex flex-col self-stretch">
+                            <span class="text-xs font-normal text-gray-500"
+                                  th:text="|Mise à jour : ${moisCourant}|">Mise à jour</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-1 flex-col self-stretch p-6">
+                        <div class="flex flex-col gap-4 self-stretch">
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <div class="flex justify-between self-stretch">
+                                    <span class="text-sm font-normal text-gray-600">Électricité (kWh)</span>
+                                    <span class="text-sm font-bold text-gray-500">Non relevée</span>
+                                </div>
+                                <div class="self-stretch h-2 rounded-full bg-gray-100"></div>
+                            </div>
+                            <div class="flex flex-col gap-2 self-stretch">
+                                <div class="flex justify-between self-stretch">
+                                    <span class="text-sm font-normal text-gray-600">Eau (m³)</span>
+                                    <span class="text-sm font-bold text-gray-500">Non relevée</span>
+                                </div>
+                                <div class="self-stretch h-2 rounded-full bg-gray-100"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col self-stretch pt-6">
+                            <a th:href="@{/jirama}"
+                               class="flex flex-col justify-center items-center self-stretch rounded-xl border-2 border-solid border-blue-900 py-3">
+                                <span class="text-base font-bold text-center text-blue-900">Ouvrir le calculateur JIRAMA</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--
+                Appel à l'expertise juridique.
+
+                L'export superposait trois blocs opaques (une image vide, un
+                carré émeraude et un carré blanc) qui masquaient le texte et
+                déformaient la mise en page. Il ne reste qu'un fond bleu nuit :
+                le texte doit rester lisible, la décoration ne doit pas
+                concurrencer l'information.
+            -->
+            <div class="flex flex-col self-stretch rounded-3xl bg-blue-900 p-6 sm:p-10">
+                <div class="flex flex-col gap-2">
+                    <span class="text-2xl font-bold text-white">Besoin d'aide juridique&nbsp;?</span>
+                    <span class="text-base font-normal leading-relaxed text-blue-100">
+                        Nos experts vous accompagnent pour la rédaction de vos baux commerciaux
+                        ou pour tout litige foncier local.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

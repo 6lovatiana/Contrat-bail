@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: entete('Contrats de bail')}">
+    <meta charset="UTF-8">
+    <title>Bailtech</title>
+</head>
+
+<body class="bg-slate-50">
+
+<!--
+    Layout fluide : plus de w-[1440px] figé par l'export Figma. La barre
+    latérale vient du fragment commun, la colonne de droite occupe le reste
+    (grow) et défile seule.
+-->
+<div class="flex min-h-screen w-full flex-col lg:flex-row">
+
+    <div th:replace="~{fragments/layout :: menu('visionneuse')}"></div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <header th:replace="~{fragments/layout :: en-tete('Contrats de bail')}"></header>
+
+        <div class="flex flex-1 flex-col gap-6 self-stretch p-4 sm:p-8">
+
+            <div th:if="${messageErreur}" role="alert"
+                 class="flex flex-col gap-1 self-stretch rounded-xl border border-solid border-red-200 bg-red-50 px-4 py-3">
+                <span class="text-sm font-semibold text-red-700" th:text="${messageErreur}">Action refusée</span>
+            </div>
+
+            <div th:if="${messageVide}" role="status"
+                 class="flex flex-col gap-1 self-stretch rounded-xl border border-solid border-amber-200 bg-amber-50 px-4 py-3">
+                <span class="text-sm font-semibold text-amber-900" th:text="${messageVide}">Aucun bailleur</span>
+            </div>
+
+            <div class="flex flex-col gap-4 self-stretch sm:flex-row sm:items-end sm:justify-between">
+                <div class="flex flex-col">
+                    <div class="flex flex-col self-stretch">
+                        <span class="text-2xl font-bold text-gray-900">Historique des baux</span>
+                    </div>
+                    <div class="flex flex-col self-stretch">
+                        <!--
+                            Elvis plutôt que le ternaire à deux branches : la
+                            variable existe toujours (contrôleur : 0 par défaut),
+                            seule sa valeur peut être absente.
+                        -->
+                        <span class="font-normal text-base text-gray-500"
+                              th:text="|(${nbContrats ?: 0} contrat(s))|">(0 contrat(s))</span>
+                    </div>
+                </div>
+                <a th:href="@{/contrats/create}"
+                   class="flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-[11px]">
+                    <span class="text-base font-semibold text-center text-white">Nouveau contrat</span>
+                </a>
+            </div>
+
+            <!-- État vide : pas de ligne sans en donner la raison. -->
+            <div th:if="${#lists.isEmpty(contrats)}"
+                 class="flex flex-col items-center self-stretch rounded-2xl border border-solid border-slate-200 bg-white p-12 text-center">
+                <span class="text-sm font-medium text-slate-500">Aucun contrat enregistré.</span>
+                <a th:href="@{/contrats/create}" class="mt-2 text-sm font-semibold text-blue-900">Créer un contrat</a>
+            </div>
+
+            <!--
+                Tableau.
+
+                L'export fixait des largeurs de colonnes en pixels (w-[220px] et
+                cie), ce qui imposait 1440px et déclenchait un débordement
+                horizontal en dessous. Les colonnes sont désormais fluides
+                (flex-1 / bases relatives) et l'ensemble défile horizontalement
+                dans son propre conteneur — le tableau ne peut plus élargir la
+                page.
+            -->
+            <div th:unless="${#lists.isEmpty(contrats)}"
+                 class="flex flex-col self-stretch overflow-hidden rounded-2xl border border-solid border-slate-200 bg-white">
+
+                <div class="overflow-x-auto">
+                    <div class="min-w-[1000px]">
+
+                        <div class="flex items-center self-stretch border-b border-solid border-slate-100 bg-slate-50 px-6 py-3">
+                            <div class="flex w-20 flex-col shrink-0">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">N°</span>
+                            </div>
+                            <div class="flex w-44 flex-col">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Locataire</span>
+                            </div>
+                            <div class="flex flex-1 flex-col pr-4">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Bien</span>
+                            </div>
+                            <div class="flex w-32 shrink-0 flex-col">
+                                <span class="whitespace-nowrap text-[10px] font-bold uppercase tracking-wide text-slate-500">Loyer (MGA)</span>
+                            </div>
+                            <div class="flex w-36 shrink-0 flex-col pl-4">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Statut</span>
+                            </div>
+                            <div class="flex w-72 flex-col items-end shrink-0">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Documents</span>
+                            </div>
+                        </div>
+
+                        <div th:each="contrat : ${contrats}"
+                             class="flex items-center self-stretch border-t border-solid border-slate-50 px-6 py-4">
+                            <div class="flex w-20 flex-col shrink-0">
+                                <span class="text-sm font-semibold text-slate-900"
+                                      th:text="|N° ${contrat.id}|">N° 1</span>
+                            </div>
+                            <div class="flex w-44 flex-col">
+                                <span class="truncate text-sm font-medium text-slate-800"
+                                      th:text="${contrat.locataire}" th:title="${contrat.locataire}">
+                                    Sahondra R.</span>
+                            </div>
+                            <div class="flex flex-1 flex-col pr-4">
+                                <span class="text-sm font-normal text-slate-600"
+                                      th:text="${contrat.bien}" th:title="${contrat.bien}">Lot IVG 22</span>
+                            </div>
+                            <div class="flex w-32 shrink-0 flex-col">
+                                <span class="whitespace-nowrap text-sm font-bold text-slate-900" th:text="${contrat.loyer}">
+                                    1.200.000 Ar</span>
+                            </div>
+                            <div class="flex w-36 shrink-0 flex-col pl-4">
+                                <div class="flex self-start rounded-full px-3 py-[3.5px]"
+                                     th:classappend="${contrat.statutCss}">
+                                    <span class="text-xs font-semibold" th:text="${contrat.statut}">Actif</span>
+                                </div>
+                            </div>
+                            <div class="flex w-72 shrink-0 flex-col items-end">
+                                <!--
+                                    nowrap : à largeur égale, les trois
+                                    boutons passaient à la ligne et le tableau
+                                    doublait de hauteur pour rien.
+                                -->
+                                <div class="flex items-center justify-end gap-2 whitespace-nowrap">
+                                    <a th:href="@{/contrats/{id}(id=${contrat.id})}"
+                                       class="flex items-center rounded-lg border border-solid border-slate-200 px-3 py-1.5">
+                                        <span class="text-xs font-semibold text-blue-900">Fiche</span>
+                                    </a>
+                                    <a th:href="@{/contrats/{id}/pdf(id=${contrat.id})}" target="_blank" rel="noopener"
+                                       class="flex items-center rounded-lg border border-solid border-slate-200 px-3 py-1.5">
+                                        <span class="text-xs font-semibold text-blue-900">Voir le PDF</span>
+                                    </a>
+                                    <a th:href="@{/contrats/{id}/pdf/telecharger(id=${contrat.id})}"
+                                       class="flex items-center rounded-lg bg-blue-900 px-3 py-1.5">
+                                        <span class="text-xs font-semibold text-white">Télécharger</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

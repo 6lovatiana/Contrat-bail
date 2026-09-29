@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<!--
+    Fragments de mise en page communs à tous les écrans.
+
+    Ils factorisent ce que l'export Figma répétait à l'identique dans chacun de
+    ses fichiers : barre latérale, en-tête, avatar. Un menu modifié ne doit
+    l'être qu'une fois, sans quoi les six écrans divergent à la première
+    correction.
+
+    Le paramètre « actif » du fragment menu indique l'entrée courante : c'est
+    lui qui applique la mise en évidence, et non une classe écrite en dur dans
+    chaque page.
+-->
+
+<head th:fragment="entete(titre)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title th:text="${titre} + ' — Bailtech'">Bailtech</title>
+</head>
+
+<body>
+
+<!--
+    Barre latérale.
+
+    Responsive : repliée par défaut sous « lg », où elle devient un tiroir
+    piloté par le bouton du bandeau. Le repli n'utilise pas de JavaScript —
+    la case à cocher et son libellé associé basculent l'état par CSS pur, ce
+    qui évite d'ajouter un script pour ce que Tailwind sait déjà exprimer.
+
+    th:fragment="menu(actif)" : l'entrée à mettre en évidence. La case à
+    cocher du tiroir est declarado ICI et non dans la page, parce que son id
+    est référencé par le libellé du bandeau (fragment en-tête) : si elle était
+    définie dans chaque page, il faudrait la dupliquer six fois.
+-->
+<aside th:fragment="menu(actif)"
+       class="contents lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:flex-col lg:justify-between lg:bg-blue-900">
+
+    <input type="checkbox" id="tiroir" class="peer sr-only">
+
+    <!-- Fond mobile : ferme le tiroir au toucher. -->
+    <label for="tiroir" aria-label="Fermer le menu"
+           class="fixed inset-0 z-30 hidden bg-slate-900/50 peer-checked:block lg:hidden"></label>
+
+    <nav class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col justify-between overflow-y-auto bg-blue-900 pb-6 transition-transform peer-checked:translate-x-0 lg:static lg:translate-x-0">
+        <div class="flex flex-col self-stretch p-8">
+            <a th:href="@{/dashboard}" class="flex items-center gap-3 self-stretch">
+                <img th:src="@{/icons/logo_projetct.png}" alt="Bailtech"
+                     class="w-14 rounded-lg bg-blue-800">
+            </a>
+        </div>
+
+        <div class="flex flex-col justify-center self-stretch grow pt-4">
+            <div class="flex flex-col self-stretch grow px-4">
+                <div class="flex flex-col gap-2 self-stretch">
+
+                    <a th:href="@{/dashboard}" th:fragment="lienDashboard"
+                       class="flex items-center gap-3 self-stretch rounded-xl px-4 py-3"
+                       th:classappend="${actif == 'dashboard'} ? 'bg-white' : 'hover:bg-blue-800'">
+                        <img th:src="@{/icons/tableau-de-bord.png}" alt="" class="h-4 w-4 shrink-0"
+                             th:classappend="${actif == 'dashboard'} ? 'opacity-100' : 'invert opacity-90'">
+                        <span class="flex flex-col font-normal text-base"
+                              th:classappend="${actif == 'dashboard'} ? 'font-medium text-blue-900' : 'text-white'">
+                            Tableau de bord
+                        </span>
+                    </a>
+
+                    <a th:href="@{/contrats/create}" th:fragment="lienContrats"
+                       class="flex items-center gap-3 self-stretch rounded-xl px-4 py-3"
+                       th:classappend="${actif == 'contrats'} ? 'bg-white' : 'hover:bg-blue-800'">
+                        <img th:src="@{/icons/contracter.png}" alt="" class="h-4 w-4 shrink-0"
+                             th:classappend="${actif == 'contrats'} ? 'opacity-100' : 'invert opacity-90'">
+                        <span class="flex flex-col font-normal text-base"
+                              th:classappend="${actif == 'contrats'} ? 'font-medium text-blue-900' : 'text-white'">
+                            Contrats
+                        </span>
+                    </a>
+
+                    <a th:href="@{/contrats}" th:fragment="lienVisionneuse"
+                       class="flex items-center gap-3 self-stretch rounded-xl px-4 py-3"
+                       th:classappend="${actif == 'visionneuse'} ? 'bg-white' : 'hover:bg-blue-800'">
+                        <img th:src="@{/icons/coffre-fort.png}" alt="" class="h-4 w-4 shrink-0"
+                             th:classappend="${actif == 'visionneuse'} ? 'opacity-100' : 'brightness-0 invert opacity-90'">
+                        <span class="flex flex-col font-normal text-base"
+                              th:classappend="${actif == 'visionneuse'} ? 'font-medium text-blue-900' : 'text-white'">
+                            Visionneuse
+                        </span>
+                    </a>
+
+                    <a th:href="@{/locataires}" th:fragment="lienLocataires"
+                       class="flex items-center gap-3 self-stretch rounded-xl px-4 py-3"
+                       th:classappend="${actif == 'locataires'} ? 'bg-white' : 'hover:bg-blue-800'">
+                        <img th:src="@{/icons/groupe-d'utilisateurs.png}" alt="" class="h-4 w-4 shrink-0"
+                             th:classappend="${actif == 'locataires'} ? 'opacity-100' : 'invert opacity-90'">
+                        <span class="flex flex-col font-normal text-base"
+                              th:classappend="${actif == 'locataires'} ? 'font-medium text-blue-900' : 'text-white'">
+                            Locataires
+                        </span>
+                    </a>
+
+                    <a th:href="@{/jirama}" th:fragment="lienJirama"
+                       class="flex items-center gap-3 self-stretch rounded-xl px-4 py-3"
+                       th:classappend="${actif == 'jirama'} ? 'bg-white' : 'hover:bg-blue-800'">
+                        <img th:src="@{/icons/ampoule.png}" alt="" class="h-4 w-4 shrink-0">
+                        <span class="flex flex-col font-normal text-base"
+                              th:classappend="${actif == 'jirama'} ? 'font-medium text-blue-900' : 'text-white'">
+                            Calculateur JIRAMA
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!--
+            Bloc d'abonnement.
+
+            L'export Figma peignait ce cartouche en bg-white tout en peint ses
+            textes en text-white : le texte était invisible sur fond blanc. Le
+            cartouche est donc passé en bleu nuit, ce qui rend le blanc lisible
+            tout en gardant sa position dans la barre.
+        -->
+        <div class="flex flex-col self-stretch p-6">
+            <div class="flex flex-col gap-2 self-stretch rounded-2xl border border-solid border-blue-700 bg-blue-950 p-4">
+                <div class="flex flex-col self-stretch">
+                    <span class="text-xs font-semibold text-blue-200">Abonnement</span>
+                </div>
+                <div class="flex justify-between items-center self-stretch">
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium text-white">Pack Premium</span>
+                    </div>
+                    <div class="flex flex-col rounded-full bg-emerald-700 px-2 py-0.5">
+                        <span class="text-[10px] leading-[15px] text-white">ACTIF</span>
+                    </div>
+                </div>
+                <div class="self-stretch h-1.5 rounded-full bg-blue-800">
+                    <div class="h-1.5 w-[156px] rounded-full bg-emerald-500"></div>
+                </div>
+                <div class="flex flex-col self-stretch">
+                    <!--
+                        Le compteur vient de DonneesCommunes, présent sur
+                        tous les écrans. Lire synthese ici afficherait « 0/15 »
+                        partout ailleurs qu'au tableau de bord.
+                    -->
+                    <span class="text-[11px] leading-[16.5px] text-blue-200"
+                          th:text="${nombreLogementsParc != null}
+                                   ? (${nombreLogementsParc} + '/15 biens gérés')
+                                   : 'Connexion requise'">0/15 biens gérés</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+</aside>
+
+<!--
+    En-tête commun : titre, commanditaire à droite, avatar, déconnexion.
+
+    Le bouton de menu n'apparaît que sous « lg » : au-delà, la barre latérale
+    est toujours visible.
+-->
+<header th:fragment="en-tete(titre)" class="flex flex-col gap-4 self-stretch bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+    <div class="flex items-center gap-4">
+        <label for="tiroir" aria-label="Ouvrir le menu"
+               class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-slate-50 lg:hidden">
+            <img th:src="@{/icons/tableau-de-bord.png}" alt="" class="h-4 w-4">
+        </label>
+        <div class="flex flex-col">
+            <span class="text-xl font-bold text-gray-900" th:text="${titre}">Bailtech</span>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <div class="flex flex-col">
+            <div class="flex flex-col items-end self-stretch">
+                <span class="text-sm font-semibold text-right text-gray-900"
+                      th:text="${bailleur?.nomComplet ?: 'Aucun bailleur'}">M. Razafindrakoto</span>
+            </div>
+            <div class="flex flex-col items-end self-stretch">
+                <span class="text-xs text-right text-gray-500">Propriétaire</span>
+            </div>
+        </div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
+            <span class="text-sm font-bold text-emerald-700"
+                  th:text="${bailleur?.initiales ?: '?'}">JR</span>
+        </div>
+        <!--
+            La déconnexion est un POST : Spring Security n'accepte pas qu'une
+            déconnexion soit déclenchée par un simple lien, sans quoi n'importe
+            quelle page tierce pourrait faire perdre la session d'un bailleur
+            qui la consulte. Le jeton CSRF est ajouté par Thymeleaf.
+        -->
+        <form th:action="@{/deconnexion}" method="post">
+            <button type="submit"
+                    class="flex items-center px-3 py-2 rounded-lg border border-solid border-slate-200"
+                    title="Se déconnecter">
+                <span class="text-xs font-semibold text-slate-600">Quitter</span>
+            </button>
+        </form>
+    </div>
+</header>
+
+</body>
+
+</html>
